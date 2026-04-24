@@ -6,7 +6,15 @@ const { runFullSync } = require('./scheduler/syncJob');
 require('dotenv').config();
 
 const app = express();
-app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:5174'] }));
+// Allow CORS for local development and the deployed Vercel domain.
+// In production, you might want to read this from an environment variable.
+app.use(cors({ 
+  origin: [
+    'http://localhost:5173', 
+    'http://localhost:5174', 
+    /^https:\/\/.*\.vercel\.app$/ // Allows any Vercel domain
+  ] 
+}));
 app.use(express.json());
 
 // Run sync on startup for today if no data exists
