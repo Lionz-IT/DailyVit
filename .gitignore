@@ -1,0 +1,10 @@
+# Root level rules
+.DS_Store
+
+# Data Directory (Ignore SQLite databases to avoid pushing large binaries/sensitive data)
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
+# Ignore environment variables in root if any
+.env
