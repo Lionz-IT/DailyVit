@@ -31,21 +31,23 @@ function generateSmartInsight(todaySummary, baseline) {
   return "😊 Hari ini aktivitasmu berjalan normal. Tetap jaga pola makan seimbang dan tidur yang cukup untuk mempertahankan kondisi kesehatanmu!";
 }
 
-function updateBaseline(db) {
-  const last7days = db.prepare(`
+async function updateBaseline(db) {
+  const result = await db.query(`
     SELECT AVG(total_steps) as avg_steps, 
            AVG(avg_heart_rate) as avg_hr, 
            AVG(total_calories) as avg_cal
     FROM daily_summary 
-    WHERE date >= date('now', '-7 days')
-  `).get();
+    WHERE date >= CURRENT_DATE - INTERVAL '7 days'
+  `);
+
+  const last7days = result.rows[0];
 
   if (last7days && last7days.avg_steps) {
-    db.prepare(`
+    await db.query(`
       UPDATE user_baseline SET 
-        avg_steps = ?, avg_heart_rate = ?, avg_calories = ?, 
-        updated_at = datetime('now')
-    `).run(last7days.avg_steps, last7days.avg_hr, last7days.avg_cal);
+        avg_steps = $1, avg_heart_rate = $2, avg_calories = $3, 
+        updated_at = CURRENT_TIMESTAMP
+    `, [last7days.avg_steps, last7days.avg_hr, last7days.avg_cal]);
   }
 }
 

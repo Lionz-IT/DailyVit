@@ -27,40 +27,38 @@ async function runFullSync(date = new Date().toISOString().split('T')[0]) {
     const avgHR = aggregateDailyHeartRate(cleanedHR);
     const totalCal = aggregateDailyCalories(cleanedCal);
 
-    const baseline = db.prepare('SELECT * FROM user_baseline LIMIT 1').get() || { avg_steps: 7000, avg_heart_rate: 75, avg_calories: 450 };
+    const baselineResult = await db.query('SELECT * FROM user_baseline LIMIT 1');
+    const baseline = baselineResult.rows[0] || { avg_steps: 7000, avg_heart_rate: 75, avg_calories: 450 };
     
     const summary = { total_steps: totalSteps, avg_heart_rate: avgHR, total_calories: totalCal };
     const insight = generateSmartInsight(summary, baseline);
 
-    db.prepare(`
+    await db.query(`
       INSERT INTO daily_summary (date, total_steps, total_calories, avg_heart_rate, smart_insight, updated_at)
-      VALUES (?, ?, ?, ?, ?, datetime('now'))
+      VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
       ON CONFLICT(date) DO UPDATE SET
-        total_steps = excluded.total_steps,
-        total_calories = excluded.total_calories,
-        avg_heart_rate = excluded.avg_heart_rate,
-        smart_insight = excluded.smart_insight,
-        updated_at = datetime('now')
-    `).run(date, totalSteps, totalCal, avgHR, insight);
+        total_steps = EXCLUDED.total_steps,
+        total_calories = EXCLUDED.total_calories,
+        avg_heart_rate = EXCLUDED.avg_heart_rate,
+        smart_insight = EXCLUDED.smart_insight,
+        updated_at = CURRENT_TIMESTAMP
+    `, [date, totalSteps, totalCal, avgHR, insight]);
 
     const hourlyTrend = buildHourlyTrend(cleanedSteps, cleanedHR, cleanedCal);
-    const insertHourly = db.prepare(`
-      INSERT INTO hourly_data (date, hour, steps, heart_rate, calories)
-      VALUES (?, ?, ?, ?, ?)
-      ON CONFLICT(date, hour) DO UPDATE SET
-        steps = excluded.steps,
-        heart_rate = excluded.heart_rate,
-        calories = excluded.calories
-    `);
+    
+    // Process hourly inserts concurrently
+    await Promise.all(hourlyTrend.map(t => 
+      db.query(`
+        INSERT INTO hourly_data (date, hour, steps, heart_rate, calories)
+        VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT(date, hour) DO UPDATE SET
+          steps = EXCLUDED.steps,
+          heart_rate = EXCLUDED.heart_rate,
+          calories = EXCLUDED.calories
+      `, [date, t.hour, t.steps, t.heartRate, t.calories])
+    ));
 
-    const insertMany = db.transaction((trends) => {
-      for (const t of trends) {
-        insertHourly.run(date, t.hour, t.steps, t.heartRate, t.calories);
-      }
-    });
-    insertMany(hourlyTrend);
-
-    updateBaseline(db);
+    await updateBaseline(db);
     console.log(`Sync completed for ${date}`);
   } catch (error) {
     console.error('Error during sync:', error);

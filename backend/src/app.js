@@ -17,29 +17,39 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Run sync on startup for today if no data exists
-const today = new Date().toISOString().split('T')[0];
-const todayData = db.prepare('SELECT * FROM daily_summary WHERE date = ?').get(today);
-if (!todayData) {
-  runFullSync(today);
-}
+// Initialize dummy data asynchronously
+async function initDummyData() {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const todayResult = await db.query('SELECT * FROM daily_summary WHERE date = $1', [today]);
+    if (todayResult.rows.length === 0) {
+      await runFullSync(today);
+    }
 
-// Ensure 7 days of mock data exists
-for (let i = 1; i <= 7; i++) {
-  const d = new Date();
-  d.setDate(d.getDate() - i);
-  const dateStr = d.toISOString().split('T')[0];
-  const hasData = db.prepare('SELECT * FROM daily_summary WHERE date = ?').get(dateStr);
-  if (!hasData) {
-    runFullSync(dateStr);
+    for (let i = 1; i <= 7; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const hasDataResult = await db.query('SELECT * FROM daily_summary WHERE date = $1', [dateStr]);
+      if (hasDataResult.rows.length === 0) {
+        await runFullSync(dateStr);
+      }
+    }
+  } catch (err) {
+    console.error('Error initializing dummy data:', err);
   }
 }
+// Run the init function
+initDummyData();
 
-app.get('/api/summary', (req, res) => {
+app.get('/api/summary', async (req, res) => {
   try {
     const date = req.query.date || new Date().toISOString().split('T')[0];
-    const data = db.prepare('SELECT * FROM daily_summary WHERE date = ?').get(date);
-    const baseline = db.prepare('SELECT * FROM user_baseline LIMIT 1').get() || { avg_steps: 7000, avg_heart_rate: 75, avg_calories: 450 };
+    const dataResult = await db.query('SELECT * FROM daily_summary WHERE date = $1', [date]);
+    const baselineResult = await db.query('SELECT * FROM user_baseline LIMIT 1');
+    
+    const data = dataResult.rows[0];
+    const baseline = baselineResult.rows[0] || { avg_steps: 7000, avg_heart_rate: 75, avg_calories: 450 };
 
     if (!data) {
       return res.json({
@@ -53,7 +63,7 @@ app.get('/api/summary', (req, res) => {
     }
 
     res.json({
-      date: data.date,
+      date: data.date.toISOString().split('T')[0], // format date from postgres
       total_steps: data.total_steps,
       total_calories: data.total_calories,
       avg_heart_rate: data.avg_heart_rate,
@@ -65,10 +75,11 @@ app.get('/api/summary', (req, res) => {
   }
 });
 
-app.get('/api/trend', (req, res) => {
+app.get('/api/trend', async (req, res) => {
   try {
     const date = req.query.date || new Date().toISOString().split('T')[0];
-    const data = db.prepare('SELECT * FROM hourly_data WHERE date = ? ORDER BY hour ASC').all(date);
+    const dataResult = await db.query('SELECT * FROM hourly_data WHERE date = $1 ORDER BY hour ASC', [date]);
+    const data = dataResult.rows;
 
     if (!data || data.length === 0) {
       const emptyHourly = Array.from({length: 24}, (_, hour) => ({
@@ -91,14 +102,20 @@ app.get('/api/trend', (req, res) => {
   }
 });
 
-app.get('/api/history', (req, res) => {
+app.get('/api/history', async (req, res) => {
   try {
     const days = parseInt(req.query.days) || 7;
-    const data = db.prepare(`
+    const dataResult = await db.query(`
       SELECT * FROM daily_summary 
       ORDER BY date DESC 
-      LIMIT ?
-    `).all(days);
+      LIMIT $1
+    `, [days]);
+    
+    // Format dates before sending
+    const data = dataResult.rows.map(row => ({
+      ...row,
+      date: row.date.toISOString().split('T')[0]
+    }));
     
     res.json(data);
   } catch (error) {
