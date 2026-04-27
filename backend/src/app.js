@@ -3,6 +3,8 @@ const cors = require('cors');
 const db = require('./config/db');
 const { runFullSync } = require('./scheduler/syncJob');
 
+const rateLimit = require('express-rate-limit');
+
 require('dotenv').config();
 
 const app = express();
@@ -16,6 +18,15 @@ app.use(cors({
   ] 
 }));
 app.use(express.json());
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { success: false, error: 'Terlalu banyak permintaan. Silakan coba lagi dalam 15 menit.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/', apiLimiter);
 
 // Initialize dummy data asynchronously
 async function initDummyData() {
