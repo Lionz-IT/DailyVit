@@ -34,20 +34,20 @@ export const History: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 transition-colors duration-200">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-textPrimary">Riwayat 7 Hari</h2>
-        <p className="text-textSecondary mt-1">Lihat kembali aktivitas dan kesehatanmu belakangan ini.</p>
+        <h2 className="text-3xl font-bold text-textPrimary dark:text-slate-100">Riwayat 7 Hari</h2>
+        <p className="text-textSecondary dark:text-slate-400 mt-1">Lihat kembali aktivitas dan kesehatanmu belakangan ini.</p>
       </div>
 
       {loading ? (
         <LoadingSpinner />
       ) : (
-        <div className="bg-card rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-card dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden transition-colors duration-200">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-background text-textSecondary text-sm uppercase tracking-wider border-b border-gray-100">
+                <tr className="bg-background dark:bg-slate-900 text-textSecondary dark:text-slate-400 text-sm uppercase tracking-wider border-b border-gray-100 dark:border-slate-700 transition-colors">
                   <th className="py-4 px-6 font-medium">Tanggal</th>
                   <th className="py-4 px-6 font-medium text-right">Langkah</th>
                   <th className="py-4 px-6 font-medium text-right">Kalori</th>
@@ -55,23 +55,23 @@ export const History: React.FC = () => {
                   <th className="py-4 px-6 font-medium text-center">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-gray-50 dark:divide-slate-700">
                 {history.map((item) => (
                   <tr 
                     key={item.date} 
-                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                     onClick={() => navigate(`/?date=${item.date}`)}
                   >
                     <td className="py-4 px-6">
-                      <div className="font-medium text-textPrimary">{formatDate(item.date)}</div>
+                      <div className="font-medium text-textPrimary dark:text-slate-200">{formatDate(item.date)}</div>
                     </td>
-                    <td className="py-4 px-6 text-right font-mono font-medium text-textPrimary">
+                    <td className="py-4 px-6 text-right font-mono font-medium text-textPrimary dark:text-slate-200">
                       {item.total_steps.toLocaleString('id-ID')}
                     </td>
-                    <td className="py-4 px-6 text-right font-mono font-medium text-textPrimary">
+                    <td className="py-4 px-6 text-right font-mono font-medium text-textPrimary dark:text-slate-200">
                       {item.total_calories}
                     </td>
-                    <td className="py-4 px-6 text-right font-mono font-medium text-textPrimary">
+                    <td className="py-4 px-6 text-right font-mono font-medium text-textPrimary dark:text-slate-200">
                       {item.avg_heart_rate}
                     </td>
                     <td className="py-4 px-6 text-center text-xl">
@@ -83,7 +83,7 @@ export const History: React.FC = () => {
             </table>
           </div>
           {history.length === 0 && (
-            <div className="p-8 text-center text-textSecondary">
+            <div className="p-8 text-center text-textSecondary dark:text-slate-400">
               Belum ada data riwayat yang tersimpan.
             </div>
           )}

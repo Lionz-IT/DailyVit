@@ -52,30 +52,30 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 transition-colors duration-200">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-textPrimary">Ringkasan Harian</h2>
-          <p className="text-textSecondary mt-1">Pantau aktivitas dan kesehatanmu hari ini.</p>
+          <h2 className="text-3xl font-bold text-textPrimary dark:text-slate-100">Ringkasan Harian</h2>
+          <p className="text-textSecondary dark:text-slate-400 mt-1">Pantau aktivitas dan kesehatanmu hari ini.</p>
         </div>
         
         <div className="flex items-center space-x-4 w-full sm:w-auto">
           <div className="relative w-full sm:w-auto flex items-center">
-            <CalendarIcon className="w-5 h-5 text-textSecondary absolute left-3" />
+            <CalendarIcon className="w-5 h-5 text-textSecondary dark:text-slate-400 absolute left-3" />
             <input 
               type="date" 
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-card text-textPrimary w-full"
+              className="pl-10 pr-4 py-2 border border-gray-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-card dark:bg-slate-800 text-textPrimary dark:text-slate-100 w-full transition-colors"
             />
           </div>
           <button 
             onClick={handleSync}
             disabled={syncing}
-            className="flex items-center space-x-2 bg-primary hover:bg-opacity-90 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+            className="flex items-center space-x-2 bg-primary hover:bg-opacity-90 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors"
           >
             <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{syncing ? 'Sinkronisasi...' : 'Sinkronkan'}</span>
+            <span className="hidden sm:inline">{syncing ? 'Menyinkronkan...' : 'Sinkronkan'}</span>
           </button>
         </div>
       </div>
