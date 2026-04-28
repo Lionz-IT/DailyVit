@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Leaf } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -6,11 +6,22 @@ import { useAuth } from '../context/AuthContext';
 export const Login: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [email, setEmail] = useState('demo@dailyvit.com');
+  const [password, setPassword] = useState('password123');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    login();
-    navigate('/');
+    setError(null);
+    setLoading(true);
+    const err = await login(email, password);
+    setLoading(false);
+    if (err) {
+      setError(err);
+    } else {
+      navigate('/');
+    }
   };
 
   return (
@@ -22,6 +33,11 @@ export const Login: React.FC = () => {
           <p className="mt-2 text-textSecondary dark:text-slate-400">Please sign in to your account</p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+          {error && (
+            <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
           <div className="rounded-md shadow-sm space-y-4">
             <div>
               <label htmlFor="email" className="sr-only">Email address</label>
@@ -32,7 +48,8 @@ export const Login: React.FC = () => {
                 required
                 className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm transition-colors"
                 placeholder="Email address"
-                defaultValue="demo@dailyvit.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div>
@@ -44,7 +61,8 @@ export const Login: React.FC = () => {
                 required
                 className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm transition-colors"
                 placeholder="Password"
-                defaultValue="password123"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </div>
           </div>
@@ -52,9 +70,10 @@ export const Login: React.FC = () => {
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary hover:bg-opacity-90 disabled:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
             >
-              Sign in
+              {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </div>
         </form>

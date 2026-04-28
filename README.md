@@ -35,10 +35,12 @@
 
 ### Backend
 - **Runtime:** [Node.js](https://nodejs.org/)
-- **Framework:** [Express.js](https://expressjs.com/)
-- **Database:** [SQLite](https://www.sqlite.org/) (via `better-sqlite3`)
+- **Framework:** [Express.js 5](https://expressjs.com/)
+- **Database:** [PostgreSQL](https://www.postgresql.org/) (hosted on [Supabase](https://supabase.com/), via `pg`)
+- **Authentication:** JWT (`jsonwebtoken` + `bcryptjs`)
 - **Task Scheduler:** `node-cron`
 - **HTTP Client:** `axios`
+- **Security:** `express-rate-limit`, `cors`
 
 ## 🏗 Project Architecture
 
@@ -52,13 +54,11 @@ dailyvit/
 ├── backend/            # Node.js API server
 │   ├── src/
 │   │   ├── config/     # Database and environment configurations
+│   │   ├── middleware/  # Authentication (JWT) middleware
 │   │   ├── services/   # Business logic (e.g., Huawei API integration)
 │   │   ├── scheduler/  # Background cron jobs
 │   │   └── app.js      # Express application entry point
 │   └── .env            # Backend environment variables
-├── data/               # SQLite database storage (Ignored in Git)
-│   ├── dailyvit.db     # Main database file
-│   └── ...
 ├── package.json        # Root workspace configuration (concurrently)
 └── README.md
 ```
@@ -101,9 +101,13 @@ touch .env
 ```
 *Example `.env` content:*
 ```env
-PORT=3000
+PORT=3001
 HUAWEI_CLIENT_ID=your_client_id
 HUAWEI_CLIENT_SECRET=your_client_secret
+DATABASE_URL=postgresql://user:password@host:5432/dbname
+JWT_SECRET=your_secure_random_secret_here
+CORS_ORIGINS=http://localhost:5173,http://localhost:5174
+USE_MOCK_DATA=true
 ```
 
 ## 💻 Development
@@ -121,10 +125,11 @@ This command uses `concurrently` to execute:
 
 ### Important Notes for Developers
 
-- **Database Security:** The `data/` directory contains the SQLite `.db` files. These files are strictly ignored in `.gitignore` to prevent leaking sensitive data or bloating the repository. **Do not force commit them.**
+- **Authentication:** All `/api/*` endpoints (except `/api/login`) require a JWT token in the `Authorization: Bearer <token>` header. A default demo user (`demo@dailyvit.com` / `password123`) is auto-created on first run.
+- **Database:** The project uses PostgreSQL (Supabase). Tables are auto-created on startup. Make sure `DATABASE_URL` is set in your `.env`.
 - **Huawei Health Integration Testing:** If you are testing webhooks or callbacks locally, you will need to expose your local backend to the internet. We recommend using [Ngrok](https://ngrok.com/).
   ```bash
-  ngrok http 3000
+  ngrok http 3001
   ```
   *Use the generated `https` URL for your Huawei Developer Callback URL.*
 

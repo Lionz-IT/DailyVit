@@ -1,21 +1,50 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
+import axios from 'axios';
+
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  login: () => void;
+  token: string | null;
+  login: (email: string, password: string) => Promise<string | null>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
+  const isAuthenticated = !!token;
 
-  const login = () => setIsAuthenticated(true);
-  const logout = () => setIsAuthenticated(false);
+  useEffect(() => {
+    if (token) {
+      localStorage.setItem('token', token);
+    } else {
+      localStorage.removeItem('token');
+    }
+  }, [token]);
+
+  const login = async (email: string, password: string): Promise<string | null> => {
+    try {
+      const res = await axios.post(`${API_BASE}/api/login`, { email, password });
+      if (res.data.success && res.data.token) {
+        setToken(res.data.token);
+        return null;
+      }
+      return res.data.error || 'Login gagal.';
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.data?.error) {
+        return err.response.data.error;
+      }
+      return 'Tidak dapat terhubung ke server.';
+    }
+  };
+
+  const logout = () => setToken(null);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

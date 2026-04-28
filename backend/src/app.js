@@ -1,21 +1,24 @@
+require('dotenv').config(); // must load before any module that reads process.env
+
 const express = require('express');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 const db = require('./config/db');
 const { runFullSync } = require('./scheduler/syncJob');
-
-const rateLimit = require('express-rate-limit');
-
-require('dotenv').config();
+const { authenticateToken, loginHandler, createUsersTable } = require('./middleware/auth');
 
 const app = express();
-// Allow CORS for local development and the deployed Vercel domain.
-// In production, you might want to read this from an environment variable.
-app.use(cors({ 
-  origin: [
-    'http://localhost:5173', 
-    'http://localhost:5174', 
-    /^https:\/\/.*\.vercel\.app$/ // Allows any Vercel domain
-  ] 
+
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
+  : ['http://localhost:5173', 'http://localhost:5174'];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  }
 }));
 app.use(express.json());
 
@@ -28,9 +31,27 @@ const apiLimiter = rateLimit({
 });
 app.use('/api/', apiLimiter);
 
-// Initialize dummy data asynchronously
+const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+function isValidDate(dateStr) {
+  if (!DATE_REGEX.test(dateStr)) return false;
+  const d = new Date(dateStr + 'T00:00:00Z');
+  return !isNaN(d.getTime()) && d.toISOString().startsWith(dateStr);
+}
+
+function parseDate(raw) {
+  if (!raw) return new Date().toISOString().split('T')[0];
+  const str = String(raw);
+  if (!isValidDate(str)) return null;
+  return str;
+}
+
+app.post('/api/login', loginHandler);
+
 async function initDummyData() {
   try {
+    await createUsersTable(db);
+
     const today = new Date().toISOString().split('T')[0];
     const todayResult = await db.query('SELECT * FROM daily_summary WHERE date = $1', [today]);
     if (todayResult.rows.length === 0) {
@@ -50,15 +71,18 @@ async function initDummyData() {
     console.error('Error initializing dummy data:', err);
   }
 }
-// Run the init function
 initDummyData();
 
-app.get('/api/summary', async (req, res) => {
+app.get('/api/summary', authenticateToken, async (req, res, next) => {
   try {
-    const date = req.query.date || new Date().toISOString().split('T')[0];
+    const date = parseDate(req.query.date);
+    if (date === null) {
+      return res.status(400).json({ success: false, error: 'Format tanggal tidak valid. Gunakan YYYY-MM-DD.' });
+    }
+
     const dataResult = await db.query('SELECT * FROM daily_summary WHERE date = $1', [date]);
     const baselineResult = await db.query('SELECT * FROM user_baseline LIMIT 1');
-    
+
     const data = dataResult.rows[0];
     const baseline = baselineResult.rows[0] || { avg_steps: 7000, avg_heart_rate: 75, avg_calories: 450 };
 
@@ -74,7 +98,7 @@ app.get('/api/summary', async (req, res) => {
     }
 
     res.json({
-      date: data.date.toISOString().split('T')[0], // format date from postgres
+      date: data.date.toISOString().split('T')[0],
       total_steps: data.total_steps,
       total_calories: data.total_calories,
       avg_heart_rate: data.avg_heart_rate,
@@ -82,13 +106,17 @@ app.get('/api/summary', async (req, res) => {
       baseline
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    next(error);
   }
 });
 
-app.get('/api/trend', async (req, res) => {
+app.get('/api/trend', authenticateToken, async (req, res, next) => {
   try {
-    const date = req.query.date || new Date().toISOString().split('T')[0];
+    const date = parseDate(req.query.date);
+    if (date === null) {
+      return res.status(400).json({ success: false, error: 'Format tanggal tidak valid. Gunakan YYYY-MM-DD.' });
+    }
+
     const dataResult = await db.query('SELECT * FROM hourly_data WHERE date = $1 ORDER BY hour ASC', [date]);
     const data = dataResult.rows;
 
@@ -109,42 +137,77 @@ app.get('/api/trend', async (req, res) => {
 
     res.json({ date, hourlyData });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    next(error);
   }
 });
 
-app.get('/api/history', async (req, res) => {
+app.get('/api/history', authenticateToken, async (req, res, next) => {
   try {
     const days = parseInt(req.query.days) || 7;
+    if (days < 1 || days > 90) {
+      return res.status(400).json({ success: false, error: 'Parameter days harus antara 1 dan 90.' });
+    }
+
     const dataResult = await db.query(`
       SELECT * FROM daily_summary 
       ORDER BY date DESC 
       LIMIT $1
     `, [days]);
-    
-    // Format dates before sending
+
     const data = dataResult.rows.map(row => ({
       ...row,
       date: row.date.toISOString().split('T')[0]
     }));
-    
+
     res.json(data);
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    next(error);
   }
 });
 
-app.post('/api/sync', async (req, res) => {
+app.post('/api/sync', authenticateToken, async (req, res, next) => {
   try {
-    const date = req.body.date || new Date().toISOString().split('T')[0];
+    const date = parseDate(req.body.date);
+    if (date === null) {
+      return res.status(400).json({ success: false, error: 'Format tanggal tidak valid. Gunakan YYYY-MM-DD.' });
+    }
     await runFullSync(date);
     res.json({ success: true, message: `Sync completed for ${date}` });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    next(error);
   }
 });
 
+app.use((err, req, res, _next) => {
+  console.error(`[${new Date().toISOString()}] Error:`, err.message);
+  const statusCode = err.statusCode || 500;
+  res.status(statusCode).json({
+    success: false,
+    error: process.env.NODE_ENV === 'production'
+      ? 'Terjadi kesalahan internal server.'
+      : err.message
+  });
+});
+
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Backend server running on http://localhost:${PORT}`);
 });
+
+function gracefulShutdown(signal) {
+  console.log(`\n${signal} received. Shutting down gracefully...`);
+  server.close(() => {
+    console.log('HTTP server closed.');
+    db.pool.end(() => {
+      console.log('Database pool closed.');
+      process.exit(0);
+    });
+  });
+  setTimeout(() => {
+    console.error('Forced shutdown after timeout.');
+    process.exit(1);
+  }, 10000);
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
