@@ -1,12 +1,8 @@
 const { Pool } = require('pg');
 
-const sslConfig = process.env.NODE_ENV === 'production'
-  ? { rejectUnauthorized: true }
-  : { rejectUnauthorized: false };
-
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL?.includes('localhost') ? false : sslConfig
+  ssl: process.env.DATABASE_URL?.includes('localhost') ? false : { rejectUnauthorized: false }
 });
 
 async function initDB() {
