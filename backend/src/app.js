@@ -15,7 +15,13 @@ const allowedOrigins = process.env.CORS_ORIGINS
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
+    // Block requests with no origin in production (CSRF protection)
+    if (!origin) {
+      if (process.env.NODE_ENV === 'production') {
+        return callback(new Error('Origin header required'));
+      }
+      return callback(null, true);
+    }
     if (allowedOrigins.includes(origin)) return callback(null, true);
     return callback(new Error('Not allowed by CORS'));
   }
@@ -52,19 +58,27 @@ async function initDummyData() {
   try {
     await createUsersTable(db);
 
+    const usersResult = await db.query('SELECT id FROM users LIMIT 1');
+    if (usersResult.rows.length === 0) return;
+    const userId = usersResult.rows[0].id;
+
     const today = new Date().toISOString().split('T')[0];
-    const todayResult = await db.query('SELECT * FROM daily_summary WHERE date = $1', [today]);
+    const todayResult = await db.query(
+      'SELECT * FROM daily_summary WHERE user_id = $1 AND date = $2', [userId, today]
+    );
     if (todayResult.rows.length === 0) {
-      await runFullSync(today);
+      await runFullSync(today, userId);
     }
 
     for (let i = 1; i <= 7; i++) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().split('T')[0];
-      const hasDataResult = await db.query('SELECT * FROM daily_summary WHERE date = $1', [dateStr]);
+      const hasDataResult = await db.query(
+        'SELECT * FROM daily_summary WHERE user_id = $1 AND date = $2', [userId, dateStr]
+      );
       if (hasDataResult.rows.length === 0) {
-        await runFullSync(dateStr);
+        await runFullSync(dateStr, userId);
       }
     }
   } catch (err) {
@@ -80,8 +94,13 @@ app.get('/api/summary', authenticateToken, async (req, res, next) => {
       return res.status(400).json({ success: false, error: 'Format tanggal tidak valid. Gunakan YYYY-MM-DD.' });
     }
 
-    const dataResult = await db.query('SELECT * FROM daily_summary WHERE date = $1', [date]);
-    const baselineResult = await db.query('SELECT * FROM user_baseline LIMIT 1');
+    const userId = req.user.id;
+    const dataResult = await db.query(
+      'SELECT * FROM daily_summary WHERE user_id = $1 AND date = $2', [userId, date]
+    );
+    const baselineResult = await db.query(
+      'SELECT * FROM user_baseline WHERE user_id = $1', [userId]
+    );
 
     const data = dataResult.rows[0];
     const baseline = baselineResult.rows[0] || { avg_steps: 7000, avg_heart_rate: 75, avg_calories: 450 };
@@ -117,7 +136,11 @@ app.get('/api/trend', authenticateToken, async (req, res, next) => {
       return res.status(400).json({ success: false, error: 'Format tanggal tidak valid. Gunakan YYYY-MM-DD.' });
     }
 
-    const dataResult = await db.query('SELECT * FROM hourly_data WHERE date = $1 ORDER BY hour ASC', [date]);
+    const userId = req.user.id;
+    const dataResult = await db.query(
+      'SELECT * FROM hourly_data WHERE user_id = $1 AND date = $2 ORDER BY hour ASC',
+      [userId, date]
+    );
     const data = dataResult.rows;
 
     if (!data || data.length === 0) {
@@ -143,16 +166,19 @@ app.get('/api/trend', authenticateToken, async (req, res, next) => {
 
 app.get('/api/history', authenticateToken, async (req, res, next) => {
   try {
-    const days = parseInt(req.query.days) || 7;
-    if (days < 1 || days > 90) {
-      return res.status(400).json({ success: false, error: 'Parameter days harus antara 1 dan 90.' });
+    const rawDays = req.query.days;
+    const days = rawDays !== undefined ? parseInt(rawDays) : 7;
+    if (isNaN(days) || days < 1 || days > 90) {
+      return res.status(400).json({ success: false, error: 'Parameter days harus berupa angka antara 1 dan 90.' });
     }
 
+    const userId = req.user.id;
     const dataResult = await db.query(`
       SELECT * FROM daily_summary 
+      WHERE user_id = $1
       ORDER BY date DESC 
-      LIMIT $1
-    `, [days]);
+      LIMIT $2
+    `, [userId, days]);
 
     const data = dataResult.rows.map(row => ({
       ...row,
@@ -171,7 +197,7 @@ app.post('/api/sync', authenticateToken, async (req, res, next) => {
     if (date === null) {
       return res.status(400).json({ success: false, error: 'Format tanggal tidak valid. Gunakan YYYY-MM-DD.' });
     }
-    await runFullSync(date);
+    await runFullSync(date, req.user.id);
     res.json({ success: true, message: `Sync completed for ${date}` });
   } catch (error) {
     next(error);
@@ -181,11 +207,11 @@ app.post('/api/sync', authenticateToken, async (req, res, next) => {
 app.use((err, req, res, _next) => {
   console.error(`[${new Date().toISOString()}] Error:`, err.message);
   const statusCode = err.statusCode || 500;
+  // Only expose error details when NODE_ENV is explicitly set to 'development'
+  const isDev = process.env.NODE_ENV === 'development';
   res.status(statusCode).json({
     success: false,
-    error: process.env.NODE_ENV === 'production'
-      ? 'Terjadi kesalahan internal server.'
-      : err.message
+    error: isDev ? err.message : 'Terjadi kesalahan internal server.'
   });
 });
 

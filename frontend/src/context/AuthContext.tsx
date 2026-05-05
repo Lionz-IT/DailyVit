@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import axios from 'axios';
+import { setAuthFailureHandler } from '../services/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -17,6 +18,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
   const isAuthenticated = !!token;
 
+  const logout = useCallback(() => setToken(null), []);
+
   useEffect(() => {
     if (token) {
       localStorage.setItem('token', token);
@@ -24,6 +27,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.removeItem('token');
     }
   }, [token]);
+
+  useEffect(() => {
+    setAuthFailureHandler(logout);
+    return () => setAuthFailureHandler(() => {});
+  }, [logout]);
 
   const login = async (email: string, password: string): Promise<string | null> => {
     try {
@@ -40,8 +48,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return 'Tidak dapat terhubung ke server.';
     }
   };
-
-  const logout = () => setToken(null);
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, token, login, logout }}>

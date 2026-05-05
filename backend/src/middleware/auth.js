@@ -1,7 +1,11 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
+if (!process.env.JWT_SECRET) {
+  throw new Error('FATAL: JWT_SECRET environment variable is required. Set it in your .env file.');
+}
+
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = '24h';
 
 function authenticateToken(req, res, next) {
@@ -31,13 +35,27 @@ async function createUsersTable(db) {
     )
   `);
 
+  // Skip demo user creation in production
+  if (process.env.NODE_ENV === 'production') {
+    console.log('Production environment: skipping demo user creation.');
+    return;
+  }
+
   const result = await db.query('SELECT COUNT(*) as count FROM users');
   if (parseInt(result.rows[0].count) === 0) {
     const hash = await bcrypt.hash('password123', 10);
-    await db.query(
-      'INSERT INTO users (email, password_hash) VALUES ($1, $2)',
+    const userResult = await db.query(
+      'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id',
       ['demo@dailyvit.com', hash]
     );
+    const userId = userResult.rows[0].id;
+
+    await db.query(`
+      INSERT INTO user_baseline (user_id, avg_steps, avg_calories, avg_heart_rate)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (user_id) DO NOTHING
+    `, [userId, 7000, 450, 75]);
+
     console.log('Default demo user created (demo@dailyvit.com / password123)');
   }
 }

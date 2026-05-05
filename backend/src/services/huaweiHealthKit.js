@@ -2,23 +2,25 @@ const { getAccessToken } = require('./huaweiAuth');
 const axios = require('axios');
 
 async function fetchSteps(startTime, endTime) {
-  // Placeholder for real API
+  // TODO: implement real Huawei Health Kit API call
   return [];
 }
 
 async function fetchHeartRate(startTime, endTime) {
-  // Placeholder for real API
+  // TODO: implement real Huawei Health Kit API call
   return [];
 }
 
 async function fetchCalories(startTime, endTime) {
-  // Placeholder for real API
+  // TODO: implement real Huawei Health Kit API call
   return [];
 }
 
 async function fetchAllDailyData(date) {
-  const startTime = new Date(date + 'T00:00:00').getTime();
-  const endTime = new Date(date + 'T23:59:59').getTime();
+  // Use UTC to ensure consistent day boundaries regardless of server timezone
+  // TODO: implement per-user timezone when user profile supports it
+  const startTime = new Date(date + 'T00:00:00Z').getTime();
+  const endTime = new Date(date + 'T23:59:59.999Z').getTime();
   const [steps, heartRate, calories] = await Promise.all([
     fetchSteps(startTime, endTime),
     fetchHeartRate(startTime, endTime),
@@ -28,15 +30,15 @@ async function fetchAllDailyData(date) {
 }
 
 function getMockDailyData(date) {
-  // Use the date string as a simple seed to make data consistent per day, 
+  // Use the date string as a simple seed to make data consistent per day,
   // but let it slowly increase throughout the day to simulate syncing.
-  
+
   // Create a pseudo-random seed based on the date string
   let seed = 0;
   for (let i = 0; i < date.length; i++) {
     seed += date.charCodeAt(i);
   }
-  
+
   // Simple seeded random function
   const seededRandom = (hour, offset = 0) => {
     const x = Math.sin(seed + hour + offset) * 10000;
@@ -57,7 +59,7 @@ function getMockDailyData(date) {
     heartRate: Array.from({length: 24}, (_, hour) => ({
       hour,
       hr: (hour <= currentHour)
-        ? (hour >= 6 
+        ? (hour >= 6
           ? Math.floor(65 + seededRandom(hour, 2) * 30 + (hour === 8 || hour === 18 ? 15 : 0))
           : Math.floor(55 + seededRandom(hour, 3) * 10))
         : 0 // No heart rate for future hours

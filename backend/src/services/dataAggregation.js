@@ -1,8 +1,10 @@
 function aggregateDailySteps(hourlySteps) {
+  if (hourlySteps.length === 0) return 0;
   return hourlySteps.reduce((sum, d) => sum + d.steps, 0);
 }
 
 function aggregateDailyCalories(hourlyCalories) {
+  if (hourlyCalories.length === 0) return 0;
   return parseFloat(hourlyCalories.reduce((sum, d) => sum + d.cal, 0).toFixed(1));
 }
 

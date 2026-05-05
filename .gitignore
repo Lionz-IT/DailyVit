@@ -8,3 +8,7 @@ data/*.db-wal
 
 # Ignore environment variables in root if any
 .env
+
+# AI agent knowledge base files
+AGENTS.md
+**/AGENTS.md
