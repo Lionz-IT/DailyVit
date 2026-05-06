@@ -5,10 +5,9 @@ const pool = new Pool({
   ssl: process.env.DATABASE_URL?.includes('localhost') ? false : { rejectUnauthorized: false }
 });
 
-async function initDB() {
+async function runMigrations() {
   const client = await pool.connect();
   try {
-    // Users table MUST be created first (referenced by FKs in health tables)
     await client.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -18,7 +17,6 @@ async function initDB() {
       )
     `);
 
-    // Migration: drop old tables without user_id column (dev only — data is reseeded on boot)
     const colCheck = await client.query(`
       SELECT column_name FROM information_schema.columns
       WHERE table_name = 'daily_summary' AND column_name = 'user_id'
@@ -32,7 +30,6 @@ async function initDB() {
     }
 
     await client.query(`
-      -- Daily aggregated health summary
       CREATE TABLE IF NOT EXISTS daily_summary (
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -46,7 +43,6 @@ async function initDB() {
         UNIQUE(user_id, date)
       );
 
-      -- Hourly data points for trend chart
       CREATE TABLE IF NOT EXISTS hourly_data (
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -58,7 +54,6 @@ async function initDB() {
         UNIQUE(user_id, date, hour)
       );
 
-      -- User baseline (rolling 7-day average) — one per user
       CREATE TABLE IF NOT EXISTS user_baseline (
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
@@ -74,6 +69,28 @@ async function initDB() {
       CREATE INDEX IF NOT EXISTS idx_hourly_data_user_date ON hourly_data(user_id, date);
     `);
 
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS huawei_connections (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        huawei_open_id VARCHAR(255) NOT NULL,
+        access_token TEXT NOT NULL,
+        refresh_token TEXT NOT NULL,
+        token_expires_at TIMESTAMP NOT NULL,
+        connected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id)
+      );
+
+      CREATE TABLE IF NOT EXISTS oauth_states (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        state VARCHAR(255) NOT NULL UNIQUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_oauth_states_created ON oauth_states(created_at);
+    `);
+
     console.log('Database initialized successfully');
   } catch (error) {
     console.error('Error initializing database:', error);
@@ -82,9 +99,8 @@ async function initDB() {
   }
 }
 
-initDB();
-
 module.exports = {
   query: (text, params) => pool.query(text, params),
-  pool
+  pool,
+  runMigrations
 };

@@ -1,11 +1,11 @@
 const cron = require('node-cron');
 const db = require('../config/db');
-const { getMockDailyData, fetchAllDailyData } = require('../services/huaweiHealthKit');
+const { getMockDailyData, fetchAllData } = require('../services/huaweiHealthKit');
+const { refreshUserToken } = require('../services/huaweiAuth');
 const { cleanSteps, cleanHeartRate, cleanCalories } = require('../services/dataCleansing');
 const { aggregateDailySteps, aggregateDailyHeartRate, aggregateDailyCalories, buildHourlyTrend } = require('../services/dataAggregation');
 const { generateSmartInsight, updateBaseline } = require('../services/ruleEngine');
 
-// In-memory lock to prevent concurrent syncs for the same user+date
 const activeSyncs = new Set();
 
 async function runFullSync(date = new Date().toISOString().split('T')[0], userId = 1) {
@@ -24,17 +24,52 @@ async function runFullSync(date = new Date().toISOString().split('T')[0], userId
     const useMock = process.env.USE_MOCK_DATA === 'true';
     let rawSteps, rawHR, rawCal;
 
+    let rawData;
+    
     if (useMock) {
-      const mockData = getMockDailyData(date);
-      rawSteps = mockData.steps;
-      rawHR = mockData.heartRate;
-      rawCal = mockData.calories;
+      rawData = getMockDailyData(date);
     } else {
-      const realData = await fetchAllDailyData(date);
-      rawSteps = realData.steps;
-      rawHR = realData.heartRate;
-      rawCal = realData.calories;
+      const connection = await client.query(
+        'SELECT * FROM huawei_connections WHERE user_id = $1', [userId]
+      );
+      
+      if (connection.rows.length === 0) {
+        rawData = getMockDailyData(date);
+      } else {
+        const conn = connection.rows[0];
+        
+        let accessToken = conn.access_token;
+        if (new Date(conn.token_expires_at) < new Date()) {
+          try {
+            const refreshed = await refreshUserToken(conn.refresh_token);
+            accessToken = refreshed.access_token;
+            await client.query(
+              `UPDATE huawei_connections 
+               SET access_token = $1, refresh_token = $2, token_expires_at = $3
+               WHERE user_id = $4`,
+              [refreshed.access_token, refreshed.refresh_token, 
+               new Date(Date.now() + refreshed.expires_in * 1000), userId]
+            );
+          } catch (e) {
+            console.error('Failed to refresh user token, falling back to mock data', e);
+            rawData = getMockDailyData(date);
+          }
+        }
+        
+        if (!rawData) {
+          try {
+            rawData = await fetchAllData(conn.huawei_open_id, accessToken, date);
+          } catch (e) {
+            console.error('Failed to fetch data from Huawei, falling back to mock data', e);
+            rawData = getMockDailyData(date);
+          }
+        }
+      }
     }
+
+    rawSteps = rawData.steps;
+    rawHR = rawData.heartRate;
+    rawCal = rawData.calories;
 
     const cleanedSteps = cleanSteps(rawSteps);
     const cleanedHR = cleanHeartRate(rawHR);

@@ -6,6 +6,7 @@ const rateLimit = require('express-rate-limit');
 const db = require('./config/db');
 const { runFullSync } = require('./scheduler/syncJob');
 const { authenticateToken, loginHandler, createUsersTable } = require('./middleware/auth');
+const huaweiOAuthRouter = require('./routes/huaweiOAuth');
 
 const app = express();
 
@@ -27,6 +28,8 @@ app.use(cors({
   }
 }));
 app.use(express.json());
+
+app.use('/', huaweiOAuthRouter);
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -56,6 +59,7 @@ app.post('/api/login', loginHandler);
 
 async function initDummyData() {
   try {
+    await db.runMigrations();
     await createUsersTable(db);
 
     const usersResult = await db.query('SELECT id FROM users LIMIT 1');

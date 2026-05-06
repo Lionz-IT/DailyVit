@@ -1,51 +1,98 @@
-const { getAccessToken } = require('./huaweiAuth');
 const axios = require('axios');
 
-async function fetchSteps(startTime, endTime) {
-  // TODO: implement real Huawei Health Kit API call
-  return [];
+const BASE_URL = 'https://health-api.cloud.huawei.com/healthkit/v1';
+
+async function fetchHealthData(openId, userToken, dataTypeName, startTime, endTime) {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/sampleSet:daily?dataTypeName=${dataTypeName}`,
+      {
+        startTime,
+        endTime,
+        pageSize: 1000
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${userToken}`,
+          'x-user-id': openId,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data.sampleSet || [];
+  } catch (error) {
+    console.error(`Error fetching ${dataTypeName}:`, error.response?.data || error.message);
+    throw error;
+  }
 }
 
-async function fetchHeartRate(startTime, endTime) {
-  // TODO: implement real Huawei Health Kit API call
-  return [];
-}
-
-async function fetchCalories(startTime, endTime) {
-  // TODO: implement real Huawei Health Kit API call
-  return [];
-}
-
-async function fetchAllDailyData(date) {
-  // Use UTC to ensure consistent day boundaries regardless of server timezone
-  // TODO: implement per-user timezone when user profile supports it
+async function fetchSteps(openId, userToken, date) {
   const startTime = new Date(date + 'T00:00:00Z').getTime();
   const endTime = new Date(date + 'T23:59:59.999Z').getTime();
+  
+  const data = await fetchHealthData(
+    openId,
+    userToken,
+    'com.huawei.continuous.steps.total',
+    startTime,
+    endTime
+  );
+
+  return Array.from({length: 24}, (_, hour) => {
+    return { hour, steps: 0 }; 
+  });
+}
+
+async function fetchHeartRate(openId, userToken, date) {
+  const startTime = new Date(date + 'T00:00:00Z').getTime();
+  const endTime = new Date(date + 'T23:59:59.999Z').getTime();
+  
+  const data = await fetchHealthData(
+    openId,
+    userToken,
+    'com.huawei.continuous.heart.rate',
+    startTime,
+    endTime
+  );
+
+  return Array.from({length: 24}, (_, hour) => ({ hour, hr: 0 }));
+}
+
+async function fetchCalories(openId, userToken, date) {
+  const startTime = new Date(date + 'T00:00:00Z').getTime();
+  const endTime = new Date(date + 'T23:59:59.999Z').getTime();
+  
+  const data = await fetchHealthData(
+    openId,
+    userToken,
+    'com.huawei.continuous.calories.burnt',
+    startTime,
+    endTime
+  );
+
+  return Array.from({length: 24}, (_, hour) => ({ hour, cal: 0 }));
+}
+
+async function fetchAllData(openId, userToken, date) {
   const [steps, heartRate, calories] = await Promise.all([
-    fetchSteps(startTime, endTime),
-    fetchHeartRate(startTime, endTime),
-    fetchCalories(startTime, endTime),
+    fetchSteps(openId, userToken, date),
+    fetchHeartRate(openId, userToken, date),
+    fetchCalories(openId, userToken, date),
   ]);
   return { steps, heartRate, calories };
 }
 
-function getMockDailyData(date) {
-  // Use the date string as a simple seed to make data consistent per day,
-  // but let it slowly increase throughout the day to simulate syncing.
-
-  // Create a pseudo-random seed based on the date string
+function getMockData(date) {
   let seed = 0;
   for (let i = 0; i < date.length; i++) {
     seed += date.charCodeAt(i);
   }
 
-  // Simple seeded random function
   const seededRandom = (hour, offset = 0) => {
     const x = Math.sin(seed + hour + offset) * 10000;
     return x - Math.floor(x);
   };
 
-  // Get current hour so we don't generate future data for today
   const isToday = date === new Date().toISOString().split('T')[0];
   const currentHour = isToday ? new Date().getHours() : 23;
 
@@ -62,7 +109,7 @@ function getMockDailyData(date) {
         ? (hour >= 6
           ? Math.floor(65 + seededRandom(hour, 2) * 30 + (hour === 8 || hour === 18 ? 15 : 0))
           : Math.floor(55 + seededRandom(hour, 3) * 10))
-        : 0 // No heart rate for future hours
+        : 0 
     })),
     calories: Array.from({length: 24}, (_, hour) => ({
       hour,
@@ -75,6 +122,8 @@ module.exports = {
   fetchSteps,
   fetchHeartRate,
   fetchCalories,
-  fetchAllDailyData,
-  getMockDailyData
+  fetchAllData,
+  getMockData,
+  getMockDailyData: getMockData,
+  fetchAllDailyData: async (date) => fetchAllData(null, null, date)
 };
