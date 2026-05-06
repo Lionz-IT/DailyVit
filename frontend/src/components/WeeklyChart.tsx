@@ -36,7 +36,7 @@ interface WeeklyChartProps {
 }
 
 export const WeeklyChart: React.FC<WeeklyChartProps> = ({ data }) => {
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
 
   useEffect(() => {
     const observer = new MutationObserver((mutations) => {
@@ -47,7 +47,6 @@ export const WeeklyChart: React.FC<WeeklyChartProps> = ({ data }) => {
       });
     });
     observer.observe(document.documentElement, { attributes: true });
-    setIsDark(document.documentElement.classList.contains('dark'));
     return () => observer.disconnect();
   }, []);
 

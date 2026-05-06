@@ -24,37 +24,48 @@ export const Dashboard: React.FC = () => {
 
   const [date, setDate] = useState<string>(dateFromUrl || new Date().toISOString().split('T')[0]);
   const [summary, setSummary] = useState<DailySummary | null>(null);
-  const [_trend, setTrend] = useState<TrendData | null>(null);
+  const [, setTrend] = useState<TrendData | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [syncing, setSyncing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
 
-  const fetchData = async (targetDate: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const [summaryRes, trendRes, historyRes] = await Promise.all([
-        api.getSummary(targetDate),
-        api.getTrend(targetDate),
-        api.getHistory(7),
-      ]);
-      setSummary(summaryRes.data);
-      setTrend(trendRes.data);
-      setHistory(historyRes.data);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Gagal memuat data. Silakan coba lagi.';
-      setError(message);
-      setSummary(null);
-      setTrend(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchData(date);
+    let isMounted = true;
+    const loadData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [summaryRes, trendRes, historyRes] = await Promise.all([
+          api.getSummary(date),
+          api.getTrend(date),
+          api.getHistory(7),
+        ]);
+        if (isMounted) {
+          setSummary(summaryRes.data);
+          setTrend(trendRes.data);
+          setHistory(historyRes.data);
+        }
+      } catch (err) {
+        if (isMounted) {
+          const message = err instanceof Error ? err.message : 'Gagal memuat data. Silakan coba lagi.';
+          setError(message);
+          setSummary(null);
+          setTrend(null);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+    
+    void loadData();
+    
+    return () => {
+      isMounted = false;
+    };
   }, [date]);
 
   const handleSync = async () => {
@@ -62,7 +73,20 @@ export const Dashboard: React.FC = () => {
     setSyncError(null);
     try {
       await api.triggerSync(date);
-      await fetchData(date);
+      setLoading(true);
+      try {
+        const [summaryRes, trendRes, historyRes] = await Promise.all([
+          api.getSummary(date),
+          api.getTrend(date),
+          api.getHistory(7),
+        ]);
+        setSummary(summaryRes.data);
+        setTrend(trendRes.data);
+        setHistory(historyRes.data);
+      } catch (loadErr) {
+      } finally {
+        setLoading(false);
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Gagal menyinkronkan data.';
       setSyncError(message);
