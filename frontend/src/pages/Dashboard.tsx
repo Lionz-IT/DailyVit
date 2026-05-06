@@ -83,7 +83,8 @@ export const Dashboard: React.FC = () => {
         setSummary(summaryRes.data);
         setTrend(trendRes.data);
         setHistory(historyRes.data);
-      } catch (loadErr) {
+      } catch {
+        setError('Gagal memperbarui data setelah sinkronisasi.');
       } finally {
         setLoading(false);
       }
