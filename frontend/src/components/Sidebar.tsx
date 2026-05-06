@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Activity, Clock, Settings, LogOut, Watch, Menu, X } from 'lucide-react';
+import { Activity, Clock, Settings, LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const navItems = [

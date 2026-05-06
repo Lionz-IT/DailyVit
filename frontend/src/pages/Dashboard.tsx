@@ -24,7 +24,7 @@ export const Dashboard: React.FC = () => {
 
   const [date, setDate] = useState<string>(dateFromUrl || new Date().toISOString().split('T')[0]);
   const [summary, setSummary] = useState<DailySummary | null>(null);
-  const [trend, setTrend] = useState<TrendData | null>(null);
+  const [_trend, setTrend] = useState<TrendData | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [syncing, setSyncing] = useState<boolean>(false);
