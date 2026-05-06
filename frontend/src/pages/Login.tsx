@@ -28,7 +28,7 @@ export const Login: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center px-4 bg-background dark:bg-slate-900 transition-colors duration-200">
       <div className="max-w-md w-full space-y-8 bg-card dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700">
         <div className="text-center flex flex-col items-center">
-          <Leaf className="w-12 h-12 text-accent mb-4" />
+          <Leaf className="w-12 h-12 text-primary mb-4" />
           <h2 className="text-3xl font-bold font-sans text-textPrimary dark:text-slate-100">Welcome to DailyVit</h2>
           <p className="mt-2 text-textSecondary dark:text-slate-400">Please sign in to your account</p>
         </div>

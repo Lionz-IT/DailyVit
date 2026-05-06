@@ -18,7 +18,7 @@ export const Sidebar: React.FC = () => {
     <>
       <div className="p-6">
         <Link to="/" className="flex items-center space-x-3">
-          <div className="w-9 h-9 bg-red-500 rounded-lg flex items-center justify-center">
+          <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
             <Activity className="w-5 h-5 text-white" />
           </div>
           <span className="text-xl font-bold text-white">DailyVit</span>
@@ -47,8 +47,8 @@ export const Sidebar: React.FC = () => {
       </nav>
 
       <div className="p-4 mt-auto">
-        <div className="bg-slate-800/50 rounded-xl p-4 mb-3">
-          <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-2">Connected Device</p>
+        <div className="bg-green-900/50 rounded-xl p-4 mb-3">
+          <p className="text-[11px] font-medium text-green-500 uppercase tracking-wider mb-2">Connected Device</p>
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 rounded-full bg-accent" />
             <span className="text-sm font-medium text-white">Huawei Watch</span>
@@ -68,11 +68,11 @@ export const Sidebar: React.FC = () => {
 
   return (
     <>
-      <button
-        onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-slate-900 text-white rounded-lg"
-        aria-label="Toggle menu"
-      >
+        <button
+          onClick={() => setMobileOpen(!mobileOpen)}
+          className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-green-950 text-white rounded-lg"
+          aria-label="Toggle menu"
+        >
         {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
       </button>
 
@@ -83,7 +83,7 @@ export const Sidebar: React.FC = () => {
         />
       )}
 
-      <aside className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-slate-900 flex flex-col transform transition-transform duration-200 ${
+      <aside className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-green-950 flex flex-col transform transition-transform duration-200 ${
         mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}>
         {nav}

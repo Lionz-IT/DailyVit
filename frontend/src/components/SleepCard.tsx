@@ -27,28 +27,28 @@ export const SleepCard: React.FC = () => {
       <div className="space-y-3 mt-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 rounded-full bg-indigo-500" />
+            <div className="w-2 h-2 rounded-full bg-green-600" />
             <span className="text-sm text-textSecondary dark:text-slate-400">Tidur Pulas</span>
           </div>
           <span className="text-sm font-mono font-medium text-textPrimary dark:text-slate-200">--</span>
         </div>
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 rounded-full bg-blue-400" />
+            <div className="w-2 h-2 rounded-full bg-green-400" />
             <span className="text-sm text-textSecondary dark:text-slate-400">Tidur Ringan</span>
           </div>
           <span className="text-sm font-mono font-medium text-textPrimary dark:text-slate-200">--</span>
         </div>
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 rounded-full bg-cyan-400" />
+            <div className="w-2 h-2 rounded-full bg-blue-400" />
             <span className="text-sm text-textSecondary dark:text-slate-400">REM</span>
           </div>
           <span className="text-sm font-mono font-medium text-textPrimary dark:text-slate-200">--</span>
         </div>
       </div>
 
-      <button className="mt-4 w-full py-2.5 bg-slate-900 dark:bg-slate-700 text-white text-sm font-medium rounded-xl hover:bg-slate-800 dark:hover:bg-slate-600 transition-colors">
+      <button className="mt-4 w-full py-2.5 bg-green-900 dark:bg-green-800 text-white text-sm font-medium rounded-xl hover:bg-green-800 dark:hover:bg-green-700 transition-colors">
         Lihat Detail
       </button>
     </div>

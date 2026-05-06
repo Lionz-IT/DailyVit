@@ -127,8 +127,8 @@ export const Dashboard: React.FC = () => {
               value={summary.avg_heart_rate}
               unit="BPM"
               icon={Heart}
-              iconColor="text-red-500"
-              iconBgColor="bg-red-50 dark:bg-red-900/20"
+              iconColor="text-green-500"
+              iconBgColor="bg-green-50 dark:bg-green-900/20"
               baselineValue={summary.baseline?.avg_heart_rate}
               isHigherBetter={false}
               statusLabel={summary.avg_heart_rate > 0 ? undefined : 'N/A'}
@@ -138,8 +138,8 @@ export const Dashboard: React.FC = () => {
               value={summary.total_calories}
               unit="Kkal"
               icon={Flame}
-              iconColor="text-orange-500"
-              iconBgColor="bg-orange-50 dark:bg-orange-900/20"
+              iconColor="text-blue-500"
+              iconBgColor="bg-blue-50 dark:bg-blue-900/20"
               baselineValue={summary.baseline?.avg_calories}
               isHigherBetter={true}
             />
@@ -158,8 +158,8 @@ export const Dashboard: React.FC = () => {
               value="--"
               unit="%"
               icon={Wind}
-              iconColor="text-blue-500"
-              iconBgColor="bg-blue-50 dark:bg-blue-900/20"
+              iconColor="text-sky-500"
+              iconBgColor="bg-sky-50 dark:bg-sky-900/20"
               statusLabel="Segera hadir"
             />
           </div>

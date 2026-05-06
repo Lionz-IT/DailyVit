@@ -68,7 +68,7 @@ export const WeeklyChart: React.FC<WeeklyChartProps> = ({ data }) => {
         type: 'bar' as const,
         label: 'Langkah',
         data: sorted.map(d => d.total_steps),
-        backgroundColor: 'rgba(239, 68, 68, 0.7)',
+        backgroundColor: 'rgba(22, 163, 74, 0.7)',
         borderRadius: 6,
         yAxisID: 'y',
         order: 2,
