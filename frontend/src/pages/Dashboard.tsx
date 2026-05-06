@@ -31,9 +31,33 @@ export const Dashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
 
+  const loadData = async (targetDate: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [summaryRes, trendRes, historyRes] = await Promise.all([
+        api.getSummary(targetDate),
+        api.getTrend(targetDate),
+        api.getHistory(7),
+      ]);
+      setSummary(summaryRes.data);
+      setTrend(trendRes.data);
+      setHistory(historyRes.data);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Gagal memuat data. Silakan coba lagi.';
+      setError(message);
+      setSummary(null);
+      setTrend(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
-    const loadData = async () => {
+    
+    // We wrap loadData here to respect isMounted, but loadData itself is defined outside
+    const fetchWithMountCheck = async () => {
       setLoading(true);
       setError(null);
       try {
@@ -61,7 +85,7 @@ export const Dashboard: React.FC = () => {
       }
     };
     
-    void loadData();
+    void fetchWithMountCheck();
     
     return () => {
       isMounted = false;
@@ -138,7 +162,7 @@ export const Dashboard: React.FC = () => {
           <p className="text-lg font-medium text-textPrimary dark:text-slate-100 mb-2">Gagal Memuat Data</p>
           <p className="text-textSecondary dark:text-slate-400 mb-6">{error}</p>
           <button
-            onClick={() => fetchData(date)}
+            onClick={() => loadData(date)}
             className="bg-primary hover:bg-opacity-90 text-white px-6 py-2 rounded-lg transition-colors"
           >
             Coba Lagi
