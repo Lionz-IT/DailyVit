@@ -5,7 +5,7 @@ import { api } from '../services/api';
 import type { DailySummary, TrendData, HistoryItem } from '../types/health';
 import { SummaryCard } from '../components/SummaryCard';
 import { SmartInsightPanel } from '../components/SmartInsightPanel';
-import { WeeklyChart } from '../components/WeeklyChart';
+import { TrendChart } from '../components/TrendChart';
 import { SleepCard } from '../components/SleepCard';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 
@@ -24,8 +24,8 @@ export const Dashboard: React.FC = () => {
 
   const [date, setDate] = useState<string>(dateFromUrl || new Date().toISOString().split('T')[0]);
   const [summary, setSummary] = useState<DailySummary | null>(null);
-  const [, setTrend] = useState<TrendData | null>(null);
-  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [trend, setTrend] = useState<TrendData | null>(null);
+  const [, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [syncing, setSyncing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -219,11 +219,11 @@ export const Dashboard: React.FC = () => {
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             <div className="xl:col-span-2">
-              {history.length > 0 ? (
-                <WeeklyChart data={history} />
+              {trend && trend.hourlyData && trend.hourlyData.length > 0 ? (
+                <TrendChart data={trend} />
               ) : (
                 <div className="bg-card dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700 h-full flex items-center justify-center">
-                  <p className="text-textSecondary dark:text-slate-400">Belum ada data riwayat mingguan.</p>
+                  <p className="text-textSecondary dark:text-slate-400">Belum ada data aktivitas harian.</p>
                 </div>
               )}
             </div>
