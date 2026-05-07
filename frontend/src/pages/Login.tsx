@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Leaf } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const Login: React.FC = () => {
@@ -25,10 +24,10 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-background dark:bg-slate-900 transition-colors duration-200">
+    <div className="h-full min-h-[80vh] flex flex-col items-center justify-center px-4 bg-background dark:bg-slate-900 transition-colors duration-200 py-12">
       <div className="max-w-md w-full space-y-8 bg-card dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700">
         <div className="text-center flex flex-col items-center">
-          <Leaf className="w-12 h-12 text-primary mb-4" />
+          <img src="/dailyvit-logo.png" alt="DailyVit Logo" className="w-20 h-20 mb-4 bg-white rounded-2xl p-1" />
           <h2 className="text-3xl font-bold font-sans text-textPrimary dark:text-slate-100">Welcome to DailyVit</h2>
           <p className="mt-2 text-textSecondary dark:text-slate-400">Please sign in to your account</p>
         </div>

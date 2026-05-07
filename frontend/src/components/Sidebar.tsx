@@ -18,9 +18,7 @@ export const Sidebar: React.FC = () => {
     <>
       <div className="p-6">
         <Link to="/" className="flex items-center space-x-3">
-          <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
-            <Activity className="w-5 h-5 text-white" />
-          </div>
+          <img src="/dailyvit-logo.png" alt="DailyVit Logo" className="w-9 h-9 rounded-lg bg-white p-0.5" />
           <span className="text-xl font-bold text-white">DailyVit</span>
         </Link>
       </div>
