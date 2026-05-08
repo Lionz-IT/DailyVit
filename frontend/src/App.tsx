@@ -13,9 +13,9 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 
 const AppContent: React.FC = () => {
   return (
-    <div className="min-h-screen flex bg-background dark:bg-slate-900 transition-colors duration-200">
+    <div className="h-screen flex overflow-hidden bg-background dark:bg-slate-900 transition-colors duration-200">
       <Sidebar />
-      <div className="flex-1 flex flex-col min-h-screen lg:ml-0">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden lg:ml-0">
         <TopBar />
         <main className="flex-1 overflow-y-auto relative">
           <Routes>
