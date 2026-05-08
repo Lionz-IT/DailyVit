@@ -88,7 +88,7 @@ export const History: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {history.map((item, index) => {
+                {history.map((item) => {
                   // Generate pseudo-random sleep score between 70-95 based on date
                   const sleepScore = 70 + (item.date.charCodeAt(item.date.length - 1) % 26);
                   
