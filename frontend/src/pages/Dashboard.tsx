@@ -121,7 +121,8 @@ export const Dashboard: React.FC = () => {
     setSyncing(true);
     setSyncError(null);
     try {
-      await api.triggerSync(date);
+      const currentHour = new Date().getHours();
+      await api.triggerSync(date, currentHour);
       setLoading(true);
       try {
         const [summaryRes, trendRes, historyRes] = await Promise.all([

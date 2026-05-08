@@ -8,7 +8,7 @@ const { generateSmartInsight, updateBaseline } = require('../services/ruleEngine
 
 const activeSyncs = new Set();
 
-async function runFullSync(date = new Date().toISOString().split('T')[0], userId = 1) {
+async function runFullSync(date = new Date().toISOString().split('T')[0], userId = 1, currentHour = null) {
   const lockKey = `${userId}:${date}`;
   if (activeSyncs.has(lockKey)) {
     console.log(`Sync already in progress for user ${userId} on ${date}, skipping.`);
@@ -27,14 +27,14 @@ async function runFullSync(date = new Date().toISOString().split('T')[0], userId
     let rawData;
     
     if (useMock) {
-      rawData = getMockDailyData(date);
+      rawData = getMockDailyData(date, currentHour);
     } else {
       const connection = await client.query(
         'SELECT * FROM huawei_connections WHERE user_id = $1', [userId]
       );
       
       if (connection.rows.length === 0) {
-        rawData = getMockDailyData(date);
+        rawData = getMockDailyData(date, currentHour);
       } else {
         const conn = connection.rows[0];
         
@@ -52,7 +52,7 @@ async function runFullSync(date = new Date().toISOString().split('T')[0], userId
             );
           } catch (e) {
             console.error('Failed to refresh user token, falling back to mock data', e);
-            rawData = getMockDailyData(date);
+            rawData = getMockDailyData(date, currentHour);
           }
         }
         
@@ -61,7 +61,7 @@ async function runFullSync(date = new Date().toISOString().split('T')[0], userId
             rawData = await fetchAllData(conn.huawei_open_id, accessToken, date);
           } catch (e) {
             console.error('Failed to fetch data from Huawei, falling back to mock data', e);
-            rawData = getMockDailyData(date);
+            rawData = getMockDailyData(date, currentHour);
           }
         }
       }

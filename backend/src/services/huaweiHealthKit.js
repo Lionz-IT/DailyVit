@@ -82,7 +82,7 @@ async function fetchAllData(openId, userToken, date) {
   return { steps, heartRate, calories };
 }
 
-function getMockData(date) {
+function getMockData(date, deviceHour = null) {
   let seed = 0;
   for (let i = 0; i < date.length; i++) {
     seed += date.charCodeAt(i);
@@ -94,7 +94,7 @@ function getMockData(date) {
   };
 
   const isToday = date === new Date().toISOString().split('T')[0];
-  const currentHour = isToday ? new Date().getHours() : 23;
+  const currentHour = isToday ? (deviceHour !== null && deviceHour !== undefined ? deviceHour : new Date().getHours()) : 23;
 
   return {
     steps: Array.from({length: 24}, (_, hour) => ({

@@ -201,7 +201,11 @@ app.post('/api/sync', authenticateToken, async (req, res, next) => {
     if (date === null) {
       return res.status(400).json({ success: false, error: 'Format tanggal tidak valid. Gunakan YYYY-MM-DD.' });
     }
-    await runFullSync(date, req.user.id);
+    
+    // Pass the client's current hour to the sync job for more accurate mocking
+    const currentHour = req.body.currentHour !== undefined ? parseInt(req.body.currentHour, 10) : new Date().getHours();
+    
+    await runFullSync(date, req.user.id, currentHour);
     res.json({ success: true, message: `Sync completed for ${date}` });
   } catch (error) {
     next(error);

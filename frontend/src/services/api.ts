@@ -45,6 +45,6 @@ export const api = {
   getHistory: (days: number = 7) =>
     apiClient.get<HistoryItem[]>(`/api/history?days=${days}`),
 
-  triggerSync: (date?: string) =>
-    apiClient.post(`/api/sync`, { date }),
+  triggerSync: (date?: string, currentHour?: number) =>
+    apiClient.post(`/api/sync`, { date, currentHour }),
 };
