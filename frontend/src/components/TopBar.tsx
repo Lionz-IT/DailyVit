@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, HelpCircle, Moon, Sun } from 'lucide-react';
+import { Search, Bell, HelpCircle, Moon, Sun, LogIn } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 
 export const TopBar: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     if (document.documentElement.classList.contains('dark')) {
@@ -46,9 +49,19 @@ export const TopBar: React.FC = () => {
         >
           <HelpCircle className="w-5 h-5" />
         </button>
-        <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white text-sm font-bold ml-1">
-          U
-        </div>
+        {isAuthenticated ? (
+          <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white text-sm font-bold ml-1">
+            U
+          </div>
+        ) : (
+          <Link
+            to="/login"
+            className="flex items-center space-x-1.5 bg-primary hover:bg-opacity-90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors ml-1"
+          >
+            <LogIn className="w-4 h-4" />
+            <span>Login</span>
+          </Link>
+        )}
       </div>
     </div>
   );
