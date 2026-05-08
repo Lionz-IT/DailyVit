@@ -10,7 +10,7 @@ const navItems = [
 ];
 
 export const Sidebar: React.FC = () => {
-  const { logout } = useAuth();
+  const { logout, isAuthenticated } = useAuth();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -53,13 +53,15 @@ export const Sidebar: React.FC = () => {
           </div>
           <p className="text-xs text-slate-500 mt-1 ml-4">Belum terhubung</p>
         </div>
-        <button
-          onClick={logout}
-          className="flex items-center space-x-2 w-full px-4 py-3 text-sm font-medium text-slate-400 hover:text-red-400 hover:bg-white/5 rounded-xl transition-colors"
-        >
-          <LogOut className="w-5 h-5" />
-          <span>Logout</span>
-        </button>
+        {isAuthenticated && (
+          <button
+            onClick={logout}
+            className="flex items-center space-x-2 w-full px-4 py-3 text-sm font-medium text-slate-400 hover:text-red-400 hover:bg-white/5 rounded-xl transition-colors"
+          >
+            <LogOut className="w-5 h-5" />
+            <span>Logout</span>
+          </button>
+        )}
       </div>
     </>
   );
