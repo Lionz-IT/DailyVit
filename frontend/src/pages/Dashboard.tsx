@@ -242,20 +242,6 @@ export const Dashboard: React.FC = () => {
             <SmartInsightPanel insight={summary.smart_insight} />
           )}
 
-          {!isAuthenticated && (
-            <div className="mb-6 bg-primary/10 border border-primary/20 dark:border-primary/30 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-textPrimary dark:text-slate-200">
-                Melihat versi pratinjau. Silakan login untuk menyinkronkan data smartwatch Anda.
-              </div>
-              <button
-                onClick={() => navigate('/login')}
-                className="whitespace-nowrap bg-primary text-white px-5 py-2 rounded-lg font-medium hover:bg-opacity-90 transition-colors"
-              >
-                Login ke Akun
-              </button>
-            </div>
-          )}
-
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             <div className="xl:col-span-2">
               {trend && trend.hourlyData && trend.hourlyData.length > 0 ? (
