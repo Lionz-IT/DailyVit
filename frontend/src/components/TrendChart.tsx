@@ -142,9 +142,9 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
   };
 
   return (
-    <div className="bg-card dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700 mt-6 transition-colors duration-200">
+    <div className="bg-card dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700 h-full flex flex-col transition-colors duration-200">
       <h3 className="text-lg font-bold text-textPrimary dark:text-slate-100 mb-6 transition-colors">Aktivitas & Detak Jantung – 24 Jam</h3>
-      <div className="h-80 w-full relative">
+      <div className="flex-1 w-full min-h-[300px] relative">
         <Chart type="bar" data={chartData} options={options} />
       </div>
     </div>
