@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Shield, FileText, Smartphone, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import { api, API_BASE } from '../services/api';
 
 interface ConnectionStatus {
   connected: boolean;
@@ -22,9 +22,7 @@ export const Settings: React.FC = () => {
   const fetchHuaweiStatus = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('http://localhost:3001/auth/status', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.getHuaweiStatus();
       setHuaweiStatus(res.data);
       setError(null);
     } catch (err: any) {
@@ -36,7 +34,7 @@ export const Settings: React.FC = () => {
   };
 
   const handleConnectHuawei = () => {
-    window.location.href = `http://localhost:3001/auth/huawei?token=${token}`;
+    window.location.href = `${API_BASE}/auth/huawei?token=${token}`;
   };
 
   const handleDisconnectHuawei = async () => {
@@ -44,9 +42,7 @@ export const Settings: React.FC = () => {
     
     try {
       setLoading(true);
-      await axios.post('http://localhost:3001/auth/disconnect', {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.disconnectHuawei();
       await fetchHuaweiStatus();
     } catch (err: any) {
       setError('Gagal memutuskan tautan.');

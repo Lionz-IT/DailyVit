@@ -1,29 +1,66 @@
 const axios = require('axios');
 
-const BASE_URL = 'https://health-api.cloud.huawei.com/healthkit/v1';
+const BASE_URL = 'https://health-api.cloud.huawei.com.sg/healthkit/v1';
 
 async function fetchHealthData(openId, userToken, dataTypeName, startTime, endTime) {
   try {
     const response = await axios.post(
-      `${BASE_URL}/sampleSet:daily?dataTypeName=${dataTypeName}`,
+      `${BASE_URL}/sampleSet:polymerize`,
       {
-        startTime,
-        endTime,
-        pageSize: 1000
+        polyInfo: [
+          {
+            dataType: {
+              name: dataTypeName
+            }
+          }
+        ],
+        startTime: startTime,
+        endTime: endTime,
+        groupByTime: {
+          duration: 3600000
+        }
       },
       {
         headers: {
           'Authorization': `Bearer ${userToken}`,
-          'x-user-id': openId,
+          'x-client-id': process.env.HUAWEI_OAUTH_CLIENT_ID,
           'Content-Type': 'application/json'
         }
       }
     );
-    return response.data.sampleSet || [];
+    return response.data.group || [];
   } catch (error) {
     console.error(`Error fetching ${dataTypeName}:`, error.response?.data || error.message);
     throw error;
   }
+}
+
+function extractHourlyData(groupData, valueKey = 'intVal') {
+  const result = Array.from({length: 24}, (_, hour) => ({ hour, value: 0 }));
+  
+  if (!groupData || !Array.isArray(groupData)) return result;
+
+  for (const group of groupData) {
+    const date = new Date(group.startTime);
+    const hour = date.getHours();
+    
+    let val = 0;
+    if (group.sampleSet && group.sampleSet.length > 0) {
+      const points = group.sampleSet[0].samplePoint;
+      if (points && points.length > 0) {
+        const values = points[0].value;
+        if (values && values.length > 0) {
+          val = values[0][valueKey] || values[0]['floatVal'] || 0;
+        }
+      }
+    }
+    
+    if (hour >= 0 && hour < 24) {
+      result[hour].value += val;
+    }
+  }
+  
+  return result;
 }
 
 async function fetchSteps(openId, userToken, date) {
@@ -33,14 +70,13 @@ async function fetchSteps(openId, userToken, date) {
   const data = await fetchHealthData(
     openId,
     userToken,
-    'com.huawei.continuous.steps.total',
+    'com.huawei.continuous.steps.delta',
     startTime,
     endTime
   );
 
-  return Array.from({length: 24}, (_, hour) => {
-    return { hour, steps: 0 }; 
-  });
+  const hourly = extractHourlyData(data, 'intVal');
+  return hourly.map(item => ({ hour: item.hour, steps: item.value }));
 }
 
 async function fetchHeartRate(openId, userToken, date) {
@@ -55,7 +91,8 @@ async function fetchHeartRate(openId, userToken, date) {
     endTime
   );
 
-  return Array.from({length: 24}, (_, hour) => ({ hour, hr: 0 }));
+  const hourly = extractHourlyData(data, 'floatVal');
+  return hourly.map(item => ({ hour: item.hour, hr: item.value }));
 }
 
 async function fetchCalories(openId, userToken, date) {
@@ -70,7 +107,8 @@ async function fetchCalories(openId, userToken, date) {
     endTime
   );
 
-  return Array.from({length: 24}, (_, hour) => ({ hour, cal: 0 }));
+  const hourly = extractHourlyData(data, 'floatVal');
+  return hourly.map(item => ({ hour: item.hour, cal: item.value }));
 }
 
 async function fetchAllData(openId, userToken, date) {
@@ -82,48 +120,10 @@ async function fetchAllData(openId, userToken, date) {
   return { steps, heartRate, calories };
 }
 
-function getMockData(date, deviceHour = null) {
-  let seed = 0;
-  for (let i = 0; i < date.length; i++) {
-    seed += date.charCodeAt(i);
-  }
-
-  const seededRandom = (hour, offset = 0) => {
-    const x = Math.sin(seed + hour + offset) * 10000;
-    return x - Math.floor(x);
-  };
-
-  const isToday = date === new Date().toISOString().split('T')[0];
-  const currentHour = isToday ? (deviceHour !== null && deviceHour !== undefined ? deviceHour : new Date().getHours()) : 23;
-
-  return {
-    steps: Array.from({length: 24}, (_, hour) => ({
-      hour,
-      steps: (hour >= 7 && hour <= 22 && hour <= currentHour)
-        ? Math.floor(seededRandom(hour, 1) * 800 + (hour === 8 || hour === 12 || hour === 18 ? 600 : 100))
-        : 0
-    })),
-    heartRate: Array.from({length: 24}, (_, hour) => ({
-      hour,
-      hr: (hour <= currentHour)
-        ? (hour >= 6
-          ? Math.floor(65 + seededRandom(hour, 2) * 30 + (hour === 8 || hour === 18 ? 15 : 0))
-          : Math.floor(55 + seededRandom(hour, 3) * 10))
-        : 0 
-    })),
-    calories: Array.from({length: 24}, (_, hour) => ({
-      hour,
-      cal: (hour >= 7 && hour <= currentHour) ? Math.floor(seededRandom(hour, 4) * 30 + 5) : 0
-    }))
-  };
-}
-
 module.exports = {
   fetchSteps,
   fetchHeartRate,
   fetchCalories,
   fetchAllData,
-  getMockData,
-  getMockDailyData: getMockData,
   fetchAllDailyData: async (date) => fetchAllData(null, null, date)
 };

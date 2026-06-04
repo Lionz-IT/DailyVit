@@ -101,13 +101,12 @@ touch .env
 ```
 *Example `.env` content:*
 ```env
-PORT=3001
+PORT=3000
 HUAWEI_CLIENT_ID=your_client_id
 HUAWEI_CLIENT_SECRET=your_client_secret
 DATABASE_URL=postgresql://user:password@host:5432/dbname
 JWT_SECRET=your_secure_random_secret_here
-CORS_ORIGINS=http://localhost:5173,http://localhost:5174
-USE_MOCK_DATA=true
+CORS_ORIGINS=http://localhost:5173,https://dailyvit.vercel.app
 ```
 
 ## 💻 Development
@@ -129,7 +128,7 @@ This command uses `concurrently` to execute:
 - **Database:** The project uses PostgreSQL (Supabase). Tables are auto-created on startup. Make sure `DATABASE_URL` is set in your `.env`.
 - **Huawei Health Integration Testing:** If you are testing webhooks or callbacks locally, you will need to expose your local backend to the internet. We recommend using [Ngrok](https://ngrok.com/).
   ```bash
-  ngrok http 3001
+  ngrok http 3000
   ```
   *Use the generated `https` URL for your Huawei Developer Callback URL.*
 

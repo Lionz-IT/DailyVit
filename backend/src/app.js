@@ -223,7 +223,7 @@ app.use((err, req, res, _next) => {
   });
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
   console.log(`Backend server running on http://localhost:${PORT}`);
 });

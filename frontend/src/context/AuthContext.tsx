@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import axios from 'axios';
 import { setAuthFailureHandler } from '../services/api';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 interface AuthContextType {
   isAuthenticated: boolean;

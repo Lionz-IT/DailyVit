@@ -30,12 +30,14 @@ router.get('/auth/huawei', async (req, res, next) => {
     const redirectUri = process.env.CALLBACK_URL;
     const clientId = process.env.HUAWEI_OAUTH_CLIENT_ID;
     const scopes = [
+      'openid',
       'https://www.huawei.com/healthkit/calories.read',
       'https://www.huawei.com/healthkit/heartrate.read',
-      'https://www.huawei.com/healthkit/step.read'
+      'https://www.huawei.com/healthkit/step.read',
+      'https://www.huawei.com/healthkit/historydata.open'
     ].join(' ');
 
-    const huaweiAuthUrl = `https://oauth-login.cloud.huawei.com/oauth2/v3/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&state=${encodeURIComponent(state)}`;
+    const huaweiAuthUrl = `https://oauth-login.cloud.huawei.com/oauth2/v3/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&access_type=offline&state=${encodeURIComponent(state)}`;
     
     res.redirect(huaweiAuthUrl);
   } catch (error) {
@@ -69,7 +71,7 @@ router.get('/auth/callback', async (req, res, next) => {
 
     const tokenData = await exchangeCodeForToken(code);
     const accessToken = tokenData.access_token;
-    const refreshToken = tokenData.refresh_token;
+    const refreshToken = tokenData.refresh_token || '';
     const expiresIn = tokenData.expires_in;
     const openId = tokenData.open_id || tokenData.parsed_id_token?.open_id || 'unknown_open_id';
     

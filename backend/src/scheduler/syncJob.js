@@ -1,6 +1,6 @@
 const cron = require('node-cron');
 const db = require('../config/db');
-const { getMockDailyData, fetchAllData } = require('../services/huaweiHealthKit');
+const { fetchAllData } = require('../services/huaweiHealthKit');
 const { refreshUserToken } = require('../services/huaweiAuth');
 const { cleanSteps, cleanHeartRate, cleanCalories } = require('../services/dataCleansing');
 const { aggregateDailySteps, aggregateDailyHeartRate, aggregateDailyCalories, buildHourlyTrend } = require('../services/dataAggregation');
@@ -21,48 +21,42 @@ async function runFullSync(date = new Date().toISOString().split('T')[0], userId
   try {
     await client.query('BEGIN');
 
-    const useMock = process.env.USE_MOCK_DATA === 'true';
     let rawSteps, rawHR, rawCal;
-
     let rawData;
     
-    if (useMock) {
-      rawData = getMockDailyData(date, currentHour);
+    const connection = await client.query(
+      'SELECT * FROM huawei_connections WHERE user_id = $1', [userId]
+    );
+    
+    if (connection.rows.length === 0) {
+      rawData = { steps: [], heartRate: [], calories: [] };
     } else {
-      const connection = await client.query(
-        'SELECT * FROM huawei_connections WHERE user_id = $1', [userId]
-      );
+      const conn = connection.rows[0];
       
-      if (connection.rows.length === 0) {
-        rawData = getMockDailyData(date, currentHour);
-      } else {
-        const conn = connection.rows[0];
-        
-        let accessToken = conn.access_token;
-        if (new Date(conn.token_expires_at) < new Date()) {
-          try {
-            const refreshed = await refreshUserToken(conn.refresh_token);
-            accessToken = refreshed.access_token;
-            await client.query(
-              `UPDATE huawei_connections 
-               SET access_token = $1, refresh_token = $2, token_expires_at = $3
-               WHERE user_id = $4`,
-              [refreshed.access_token, refreshed.refresh_token, 
-               new Date(Date.now() + refreshed.expires_in * 1000), userId]
-            );
-          } catch (e) {
-            console.error('Failed to refresh user token, falling back to mock data', e);
-            rawData = getMockDailyData(date, currentHour);
-          }
+      let accessToken = conn.access_token;
+      if (new Date(conn.token_expires_at) < new Date()) {
+        try {
+          const refreshed = await refreshUserToken(conn.refresh_token);
+          accessToken = refreshed.access_token;
+          await client.query(
+            `UPDATE huawei_connections 
+             SET access_token = $1, refresh_token = $2, token_expires_at = $3
+             WHERE user_id = $4`,
+            [refreshed.access_token, refreshed.refresh_token, 
+             new Date(Date.now() + refreshed.expires_in * 1000), userId]
+          );
+        } catch (e) {
+          console.error('Failed to refresh user token:', e.message);
+          rawData = { steps: [], heartRate: [], calories: [] };
         }
-        
-        if (!rawData) {
-          try {
-            rawData = await fetchAllData(conn.huawei_open_id, accessToken, date);
-          } catch (e) {
-            console.error('Failed to fetch data from Huawei, falling back to mock data', e);
-            rawData = getMockDailyData(date, currentHour);
-          }
+      }
+      
+      if (!rawData) {
+        try {
+          rawData = await fetchAllData(conn.huawei_open_id, accessToken, date);
+        } catch (e) {
+          console.error('Failed to fetch data from Huawei:', e.response?.data || e.message);
+          rawData = { steps: [], heartRate: [], calories: [] };
         }
       }
     }

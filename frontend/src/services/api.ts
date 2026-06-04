@@ -1,7 +1,9 @@
 import axios from 'axios';
 import type { DailySummary, TrendData, HistoryItem } from '../types/health';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+export { API_BASE };
 
 let authFailureCallback: (() => void) | null = null;
 
@@ -47,4 +49,7 @@ export const api = {
 
   triggerSync: (date?: string, currentHour?: number) =>
     apiClient.post(`/api/sync`, { date, currentHour }),
+
+  getHuaweiStatus: () => apiClient.get<{ connected: boolean; connectedAt?: string }>('/auth/status'),
+  disconnectHuawei: () => apiClient.post<{ success: boolean }>('/auth/disconnect'),
 };
