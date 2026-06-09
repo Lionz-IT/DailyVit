@@ -4,6 +4,7 @@ import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
 import { Dashboard } from './pages/Dashboard';
 import { History } from './pages/History';
+import { SmartInsight } from './pages/SmartInsight';
 import { Settings } from './pages/Settings';
 import { PrivacyPolicy } from './pages/PrivacyPolicy';
 import { TermsOfService } from './pages/TermsOfService';
@@ -13,7 +14,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 
 const AppContent: React.FC = () => {
   return (
-    <div className="h-screen flex overflow-hidden bg-background dark:bg-slate-900 transition-colors duration-200">
+    <div className="h-screen flex overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-200 font-sans">
       <Sidebar />
       <div className="flex-1 flex flex-col h-screen overflow-hidden lg:ml-0">
         <TopBar />
@@ -21,6 +22,7 @@ const AppContent: React.FC = () => {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/history" element={<History />} />
+            <Route path="/smart-insight" element={<SmartInsight />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />

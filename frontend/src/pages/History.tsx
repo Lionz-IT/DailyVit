@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { HistoryItem } from '../types/health';
 import { LoadingSpinner } from '../components/LoadingSpinner';
-import { Calendar } from 'lucide-react';
+import { Calendar, Download, Footprints, Flame, Moon, Heart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const History: React.FC = () => {
@@ -31,138 +31,162 @@ export const History: React.FC = () => {
     fetchHistory();
   }, [isAuthenticated]);
 
-  const getRelativeDateLabel = (dateString: string) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const targetDate = new Date(dateString);
-    targetDate.setHours(0, 0, 0, 0);
-    
-    const diffTime = today.getTime() - targetDate.getTime();
-    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return 'Hari Ini';
-    if (diffDays === 1) return 'Kemarin';
-    return `${diffDays} Hari Lalu`;
-  };
+  const avgSteps = history.length > 0 ? Math.round(history.reduce((acc, curr) => acc + curr.total_steps, 0) / history.length) : 0;
+  const totalCalories = history.length > 0 ? Math.round(history.reduce((acc, curr) => acc + curr.total_calories, 0)) : 0;
+  const avgHR = history.length > 0 ? Math.round(history.reduce((acc, curr) => acc + curr.avg_heart_rate, 0) / history.length) : 0;
 
-  const getSleepScoreColor = (score: number) => {
-    if (score >= 90) return 'bg-primary';
-    if (score >= 80) return 'bg-accent';
-    return 'bg-warning';
+  const getStatusBadge = (steps: number) => {
+    if (steps > 8000) return <span className="bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-xs font-bold">Goal Reached</span>;
+    if (steps > 5000) return <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold">Active</span>;
+    return <span className="bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-xs font-bold">Light</span>;
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 transition-colors duration-200">
-      <div className="mb-8 mt-6 lg:mt-8">
-        <h2 className="text-3xl font-bold text-textPrimary dark:text-slate-100">Riwayat Kesehatan</h2>
-        <p className="text-textSecondary dark:text-slate-400 mt-1">Log harian Anda selama 7 hari terakhir</p>
+    <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">Statistics History</h1>
+          <p className="text-sm text-slate-500 mt-1">Review your detailed health metrics and progress.</p>
+        </div>
+        <div className="flex items-center space-x-3">
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 flex items-center text-sm font-medium text-slate-600 dark:text-slate-300">
+            <Calendar className="w-4 h-4 mr-2" />
+            <span>Last 7 Days</span>
+          </div>
+        </div>
       </div>
 
       {!isAuthenticated ? (
-        <div className="bg-card dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 p-12 text-center transition-colors duration-200">
-          <Calendar className="w-16 h-16 text-gray-300 dark:text-slate-600 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-textPrimary dark:text-slate-200 mb-2">Belum Login</h3>
-          <p className="text-textSecondary dark:text-slate-400 mb-6 max-w-md mx-auto">
-            Silakan login terlebih dahulu untuk melihat riwayat kesehatan harian Anda secara detail.
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-12 text-center transition-colors duration-200">
+          <Calendar className="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-200 mb-2">Not Logged In</h3>
+          <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-md mx-auto">
+            Please log in to view your detailed daily history.
           </p>
           <button
             onClick={() => navigate('/login')}
-            className="bg-primary hover:bg-opacity-90 text-white px-6 py-2.5 rounded-lg font-medium transition-colors"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors"
           >
-            Login Sekarang
+            Login Now
           </button>
         </div>
       ) : loading ? (
         <LoadingSpinner />
       ) : (
-        <div className="bg-card dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden transition-colors duration-200 p-2 sm:p-6">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left min-w-[700px]">
-              <thead>
-                <tr className="text-textSecondary dark:text-slate-400 text-sm border-b border-gray-100 dark:border-slate-700">
-                  <th className="py-4 px-4 font-semibold">Tanggal</th>
-                  <th className="py-4 px-4 font-semibold">Detak Jantung</th>
-                  <th className="py-4 px-4 font-semibold">Kalori</th>
-                  <th className="py-4 px-4 font-semibold">Langkah</th>
-                  <th className="py-4 px-4 font-semibold">Skor Tidur</th>
-                </tr>
-              </thead>
-              <tbody>
-                {history.map((item) => {
-                  // Generate pseudo-random sleep score between 70-95 based on date
-                  const sleepScore = 70 + (item.date.charCodeAt(item.date.length - 1) % 26);
-                  
-                  return (
-                    <tr 
-                      key={item.date} 
-                      className="hover:bg-gray-50/50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer group"
-                      onClick={() => navigate(`/?date=${item.date}`)}
-                    >
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-4">
-                          <div className="p-2.5 bg-primary/10 dark:bg-primary/20 rounded-xl text-primary transition-colors group-hover:bg-primary/20">
-                            <Calendar className="w-5 h-5" />
-                          </div>
-                          <span className="font-bold text-textPrimary dark:text-slate-200 text-[15px]">
-                            {getRelativeDateLabel(item.date)}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="font-bold text-textPrimary dark:text-slate-200 text-lg">
-                            {item.avg_heart_rate}
-                          </span>
-                          <span className="text-xs font-medium text-textSecondary dark:text-slate-400">
-                            BPM
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="font-bold text-textPrimary dark:text-slate-200 text-lg">
-                            {item.total_calories}
-                          </span>
-                          <span className="text-xs font-medium text-textSecondary dark:text-slate-400 uppercase">
-                            Kcal
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="font-bold text-textPrimary dark:text-slate-200 text-lg">
-                            {item.total_steps.toLocaleString('id-ID')}
-                          </span>
-                          <span className="text-xs font-medium text-textSecondary dark:text-slate-400">
-                            Langkah
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-16 h-2 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full rounded-full ${getSleepScoreColor(sleepScore)}`} 
-                              style={{ width: `${sleepScore}%` }}
-                            ></div>
-                          </div>
-                          <span className="font-bold text-textPrimary dark:text-slate-200 text-lg">
-                            {sleepScore}
-                          </span>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          {history.length === 0 && (
-            <div className="p-8 text-center text-textSecondary dark:text-slate-400">
-              Belum ada data riwayat yang tersimpan.
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
+              <div className="flex justify-between items-center text-slate-500 mb-2">
+                <div className="flex items-center space-x-2">
+                  <Footprints className="w-4 h-4 text-blue-500" />
+                  <span className="text-sm font-medium">Avg Steps/Day</span>
+                </div>
+                <span className="bg-emerald-50 text-emerald-600 text-xs px-2 py-0.5 rounded font-bold">+5%</span>
+              </div>
+              <div className="text-3xl font-bold text-slate-900 dark:text-white mt-1">{avgSteps.toLocaleString('en-US')}</div>
             </div>
-          )}
-        </div>
+
+            <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
+              <div className="flex justify-between items-center text-slate-500 mb-2">
+                <div className="flex items-center space-x-2">
+                  <Flame className="w-4 h-4 text-orange-500" />
+                  <span className="text-sm font-medium">Total Calories</span>
+                </div>
+                <span className="bg-emerald-50 text-emerald-600 text-xs px-2 py-0.5 rounded font-bold">+2%</span>
+              </div>
+              <div className="flex items-baseline space-x-1 mt-1">
+                <span className="text-3xl font-bold text-slate-900 dark:text-white">{totalCalories.toLocaleString('en-US')}</span>
+                <span className="text-sm font-semibold text-slate-500">kcal</span>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
+              <div className="flex justify-between items-center text-slate-500 mb-2">
+                <div className="flex items-center space-x-2">
+                  <Moon className="w-4 h-4 text-indigo-500" />
+                  <span className="text-sm font-medium">Avg Sleep</span>
+                </div>
+                <span className="bg-slate-100 text-slate-500 text-xs px-2 py-0.5 rounded font-bold">-0%</span>
+              </div>
+              <div className="flex items-baseline space-x-1 mt-1">
+                <span className="text-3xl font-bold text-slate-900 dark:text-white">7</span><span className="text-sm font-semibold text-slate-500">h</span>
+                <span className="text-3xl font-bold text-slate-900 dark:text-white ml-1">20</span><span className="text-sm font-semibold text-slate-500">m</span>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
+              <div className="flex justify-between items-center text-slate-500 mb-2">
+                <div className="flex items-center space-x-2">
+                  <Heart className="w-4 h-4 text-red-500" />
+                  <span className="text-sm font-medium">Avg Heart Rate</span>
+                </div>
+                <span className="bg-red-50 text-red-600 text-xs px-2 py-0.5 rounded font-bold">-1%</span>
+              </div>
+              <div className="flex items-baseline space-x-1 mt-1">
+                <span className="text-3xl font-bold text-slate-900 dark:text-white">{avgHR}</span>
+                <span className="text-sm font-semibold text-slate-500">bpm</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="p-5 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Daily Breakdown</h3>
+              <button className="text-blue-600 hover:text-blue-700 text-sm font-semibold flex items-center space-x-1 transition-colors">
+                <span>Export Report</span>
+                <Download className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left min-w-[700px]">
+                <thead>
+                  <tr className="text-slate-500 dark:text-slate-400 text-sm border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+                    <th className="py-3 px-6 font-semibold">Date</th>
+                    <th className="py-3 px-6 font-semibold">Steps</th>
+                    <th className="py-3 px-6 font-semibold">Calories (kcal)</th>
+                    <th className="py-3 px-6 font-semibold">Avg HR (bpm)</th>
+                    <th className="py-3 px-6 font-semibold">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                  {history.map((item) => {
+                    const dateObj = new Date(item.date);
+                    const formattedDate = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                    
+                    return (
+                      <tr 
+                        key={item.date} 
+                        className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer"
+                        onClick={() => navigate(`/?date=${item.date}`)}
+                      >
+                        <td className="py-4 px-6 text-sm font-medium text-slate-700 dark:text-slate-300">
+                          {formattedDate}
+                        </td>
+                        <td className="py-4 px-6 text-sm text-blue-600 font-semibold">
+                          {item.total_steps.toLocaleString('en-US')}
+                        </td>
+                        <td className="py-4 px-6 text-sm text-slate-600 dark:text-slate-400">
+                          {item.total_calories.toLocaleString('en-US')}
+                        </td>
+                        <td className="py-4 px-6 text-sm text-slate-600 dark:text-slate-400">
+                          {Math.round(item.avg_heart_rate)}
+                        </td>
+                        <td className="py-4 px-6">
+                          {getStatusBadge(item.total_steps)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {history.length === 0 && (
+              <div className="p-8 text-center text-slate-500 dark:text-slate-400">
+                Belum ada data riwayat yang tersimpan.
+              </div>
+            )}
+          </div>
+        </>
       )}
     </div>
   );

@@ -1,22 +1,11 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { Footprints, Flame, Heart, Wind, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Footprints, Flame, Heart, AlertTriangle } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import type { DailySummary, TrendData, HistoryItem } from '../types/health';
+import type { DailySummary, TrendData } from '../types/health';
 import { SummaryCard } from '../components/SummaryCard';
-import { SmartInsightPanel } from '../components/SmartInsightPanel';
 import { TrendChart } from '../components/TrendChart';
-import { SleepCard } from '../components/SleepCard';
-import { LoadingSpinner } from '../components/LoadingSpinner';
 import { useAuth } from '../context/AuthContext';
-
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 11) return 'Selamat pagi';
-  if (hour < 15) return 'Selamat siang';
-  if (hour < 18) return 'Selamat sore';
-  return 'Selamat malam';
-}
 
 export const Dashboard: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -28,34 +17,10 @@ export const Dashboard: React.FC = () => {
   const [date, setDate] = useState<string>(dateFromUrl || new Date().toISOString().split('T')[0]);
   const [summary, setSummary] = useState<DailySummary | null>(null);
   const [trend, setTrend] = useState<TrendData | null>(null);
-  const [, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [syncing, setSyncing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
-
-  const loadData = async (targetDate: string) => {
-    if (!isAuthenticated) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const [summaryRes, trendRes, historyRes] = await Promise.all([
-        api.getSummary(targetDate),
-        api.getTrend(targetDate),
-        api.getHistory(7),
-      ]);
-      setSummary(summaryRes.data);
-      setTrend(trendRes.data);
-      setHistory(historyRes.data);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Gagal memuat data. Silakan coba lagi.';
-      setError(message);
-      setSummary(null);
-      setTrend(null);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     let isMounted = true;
@@ -68,11 +33,10 @@ export const Dashboard: React.FC = () => {
             total_steps: 0,
             total_calories: 0,
             avg_heart_rate: 0,
-            smart_insight: 'ðŸ‘‹ Halo! Silakan login untuk mulai melacak aktivitas, melihat metrik kesehatan yang akurat, dan mendapatkan wawasan pintar harian Anda.',
+            smart_insight: 'Halo! Silakan login untuk mulai melacak aktivitas.',
             baseline: { avg_steps: 0, avg_heart_rate: 0, avg_calories: 0 }
           });
           setTrend({ date: date, hourlyData: [] });
-          setHistory([]);
           setLoading(false);
         }
         return;
@@ -81,19 +45,17 @@ export const Dashboard: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const [summaryRes, trendRes, historyRes] = await Promise.all([
+        const [summaryRes, trendRes] = await Promise.all([
           api.getSummary(date),
           api.getTrend(date),
-          api.getHistory(7),
         ]);
         if (isMounted) {
           setSummary(summaryRes.data);
           setTrend(trendRes.data);
-          setHistory(historyRes.data);
         }
       } catch (err) {
         if (isMounted) {
-          const message = err instanceof Error ? err.message : 'Gagal memuat data. Silakan coba lagi.';
+          const message = err instanceof Error ? err.message : 'Gagal memuat data.';
           setError(message);
           setSummary(null);
           setTrend(null);
@@ -112,6 +74,11 @@ export const Dashboard: React.FC = () => {
     };
   }, [date, isAuthenticated]);
 
+  const handleDateChange = (newDate: string) => {
+    setDate(newDate);
+    navigate(`/?date=${newDate}`);
+  };
+
   const handleSync = async () => {
     if (!isAuthenticated) {
       navigate('/login');
@@ -125,14 +92,12 @@ export const Dashboard: React.FC = () => {
       await api.triggerSync(date, currentHour);
       setLoading(true);
       try {
-        const [summaryRes, trendRes, historyRes] = await Promise.all([
+        const [summaryRes, trendRes] = await Promise.all([
           api.getSummary(date),
           api.getTrend(date),
-          api.getHistory(7),
         ]);
         setSummary(summaryRes.data);
         setTrend(trendRes.data);
-        setHistory(historyRes.data);
       } catch {
         setError('Gagal memperbarui data setelah sinkronisasi.');
       } finally {
@@ -147,126 +112,106 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="p-6 lg:p-8 transition-colors duration-200">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+    <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-textPrimary dark:text-slate-100">Ringkasan Kesehatan</h2>
-          <p className="text-textSecondary dark:text-slate-400 mt-0.5">{getGreeting()}, {isAuthenticated ? 'pengguna DailyVit' : 'Tamu'}</p>
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">Daily Overview</h1>
+          <p className="text-sm text-slate-500 mt-1">Today, {new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} • Last synced just now</p>
         </div>
         <div className="flex items-center space-x-3">
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            aria-label="Pilih tanggal"
-            className="px-3 py-2 border border-gray-200 dark:border-slate-700 rounded-lg text-sm bg-card dark:bg-slate-800 text-textPrimary dark:text-slate-100 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-colors"
-          />
-          <button
-            onClick={handleSync}
-            disabled={syncing}
-            aria-label={syncing ? 'Sedang menyinkronkan data' : 'Sinkronkan data'}
-            className="flex items-center space-x-2 bg-primary hover:bg-opacity-90 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          >
-            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
-            <span>{syncing ? 'Sync...' : 'Sinkronkan'}</span>
-          </button>
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 flex items-center text-sm font-medium text-slate-600 dark:text-slate-300 relative">
+            <span className="mr-2">📅</span> Select Date
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => handleDateChange(e.target.value)}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+          </div>
         </div>
       </div>
 
       {syncError && (
-        <div className="mb-6 flex items-center gap-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm" role="alert">
-          <AlertTriangle className="w-5 h-5 shrink-0" />
-          <span>{syncError}</span>
+        <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-xl flex items-center space-x-3 border border-red-100 dark:border-red-900/30">
+          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+          <p className="text-sm font-medium">{syncError}</p>
         </div>
       )}
 
-      {loading ? (
-        <LoadingSpinner />
-      ) : error ? (
-        <div className="text-center py-12" role="alert">
-          <AlertTriangle className="w-12 h-12 text-warning mx-auto mb-4" />
-          <p className="text-lg font-medium text-textPrimary dark:text-slate-100 mb-2">Gagal Memuat Data</p>
-          <p className="text-textSecondary dark:text-slate-400 mb-6">{error}</p>
-          <button
-            onClick={() => loadData(date)}
-            className="bg-primary hover:bg-opacity-90 text-white px-6 py-2 rounded-lg transition-colors"
-          >
-            Coba Lagi
-          </button>
-        </div>
-      ) : summary ? (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-            <SummaryCard
-              title="Detak Jantung"
-              value={summary.avg_heart_rate}
-              unit="BPM"
-              icon={Heart}
-              iconColor="text-green-500"
-              iconBgColor="bg-green-50 dark:bg-green-900/20"
-              baselineValue={summary.baseline?.avg_heart_rate}
-              isHigherBetter={false}
-              statusLabel={summary.avg_heart_rate > 0 ? undefined : 'N/A'}
-            />
-            <SummaryCard
-              title="Kalori Terbakar"
-              value={summary.total_calories}
-              unit="Kkal"
-              icon={Flame}
-              iconColor="text-blue-500"
-              iconBgColor="bg-blue-50 dark:bg-blue-900/20"
-              baselineValue={summary.baseline?.avg_calories}
-              isHigherBetter={true}
-            />
-            <SummaryCard
-              title="Langkah Kaki"
-              value={summary.total_steps}
-              unit="Langkah"
-              icon={Footprints}
-              iconColor="text-emerald-500"
-              iconBgColor="bg-emerald-50 dark:bg-emerald-900/20"
-              baselineValue={summary.baseline?.avg_steps}
-              isHigherBetter={true}
-            />
-            <SummaryCard
-              title="Oksigen Darah"
-              value="--"
-              unit="%"
-              icon={Wind}
-              iconColor="text-sky-500"
-              iconBgColor="bg-sky-50 dark:bg-sky-900/20"
-              statusLabel="Segera hadir"
-            />
-          </div>
-
-          {summary.smart_insight && (
-            <SmartInsightPanel insight={summary.smart_insight} />
-          )}
-
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            <div className="xl:col-span-2">
-              {trend && trend.hourlyData && trend.hourlyData.length > 0 ? (
-                <TrendChart data={trend.hourlyData} />
-              ) : (
-                <div className="bg-card dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700 h-full min-h-[300px] flex flex-col items-center justify-center">
-                  <p className="text-textSecondary dark:text-slate-400 mb-4 text-center max-w-sm">
-                    {isAuthenticated ? 'Belum ada data aktivitas harian untuk tanggal ini.' : 'Grafik tren aktivitas akan muncul di sini setelah Anda login.'}
-                  </p>
-                </div>
-              )}
-            </div>
-            <div>
-              <SleepCard />
-            </div>
-          </div>
-        </>
-      ) : (
-        <div className="text-center py-12 text-textSecondary dark:text-slate-400">
-          <p className="text-lg mb-2">Tidak ada data untuk tanggal ini.</p>
-          <p className="text-sm">Silakan klik Sinkronkan untuk mengambil data.</p>
+      {error && (
+        <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-xl flex items-center space-x-3 border border-red-100 dark:border-red-900/30">
+          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+          <p className="text-sm font-medium">{error}</p>
         </div>
       )}
+
+      {!loading && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
+          <SummaryCard
+            title="Total Steps"
+            value={summary?.total_steps ?? 0}
+            unit="steps"
+            icon={Footprints}
+            color="bg-blue-500"
+            percentage={(summary?.total_steps ?? 0) / (summary?.baseline?.avg_steps || 10000)}
+            baseline={summary?.baseline?.avg_steps}
+          />
+          <SummaryCard
+            title="Active Calories"
+            value={summary?.total_calories ?? 0}
+            unit="kcal"
+            icon={Flame}
+            color="bg-orange-500"
+            percentage={(summary?.total_calories ?? 0) / (summary?.baseline?.avg_calories || 2500)}
+            baseline={summary?.baseline?.avg_calories || 2500}
+            isLinear={true}
+          />
+          <SummaryCard
+            title="Avg Resting HR"
+            value={summary?.avg_heart_rate ?? 0}
+            unit="bpm"
+            icon={Heart}
+            color="bg-red-500"
+            percentage={0}
+            baseline={summary?.baseline?.avg_heart_rate}
+            isSparkline={true}
+          />
+        </div>
+      )}
+
+      <div className="bg-blue-600 text-white rounded-xl p-6 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+        <div className="flex items-start space-x-4 z-10">
+          <div className="bg-white/20 p-2 rounded-full mt-1">
+            <span className="text-xl">💡</span>
+          </div>
+          <div>
+            <h3 className="text-lg font-bold mb-1">Optimal Recovery Window</h3>
+            <p className="text-blue-100 text-sm leading-relaxed max-w-2xl">
+              Your heart rate variability indicates excellent recovery. Today is ideal for high-intensity cardiovascular training. Consider a 45-minute structured workout to maximize health benefits.
+            </p>
+          </div>
+        </div>
+        <button className="whitespace-nowrap px-5 py-2.5 bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors z-10 text-sm" onClick={handleSync} disabled={syncing}>
+          {syncing ? 'Syncing...' : 'View Plan'}
+        </button>
+      </div>
+
+      <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-lg font-bold text-slate-800 dark:text-white">7-Day Activity Trend</h2>
+            <p className="text-sm text-slate-500">Steps vs Heart Rate (Mon - Sun)</p>
+          </div>
+          <div className="flex items-center space-x-4 text-sm text-slate-500">
+            <div className="flex items-center"><div className="w-3 h-3 bg-blue-100 dark:bg-blue-900 rounded-sm mr-2"></div> Steps</div>
+            <div className="flex items-center"><div className="w-3 h-1 bg-red-400 rounded-full mr-2"></div> Avg HR</div>
+          </div>
+        </div>
+        <div className="h-72">
+          {trend ? <TrendChart data={trend.hourlyData} /> : <div className="h-full flex items-center justify-center text-slate-400">No chart data</div>}
+        </div>
+      </div>
     </div>
   );
 };
-

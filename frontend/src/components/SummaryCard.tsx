@@ -1,16 +1,17 @@
 import React from 'react';
 import type { LucideIcon } from 'lucide-react';
+import { MoreVertical } from 'lucide-react';
 
-interface SummaryCardProps {
+export interface SummaryCardProps {
   title: string;
   value: number | string;
   unit: string;
   icon: LucideIcon;
-  iconColor?: string;
-  iconBgColor?: string;
-  baselineValue?: number;
-  isHigherBetter?: boolean;
-  statusLabel?: string;
+  color?: string;
+  percentage?: number;
+  baseline?: number;
+  isLinear?: boolean;
+  isSparkline?: boolean;
 }
 
 export const SummaryCard: React.FC<SummaryCardProps> = ({
@@ -18,58 +19,79 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
   value,
   unit,
   icon: Icon,
-  iconColor = 'text-primary',
-  iconBgColor = 'bg-blue-50 dark:bg-blue-900/20',
-  baselineValue,
-  isHigherBetter = true,
-  statusLabel,
+  color = 'bg-blue-500',
+  percentage = 0,
+  baseline,
+  isLinear,
+  isSparkline,
 }) => {
-  const numericValue = typeof value === 'string' ? parseFloat(value) : value;
-  const hasBaseline = baselineValue !== undefined && baselineValue > 0 && !isNaN(numericValue);
-  const ratio = hasBaseline ? numericValue / baselineValue : 1;
-  const percentage = Math.round(Math.abs(ratio - 1) * 100);
-
-  let badgeColor = 'bg-gray-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400';
-  let badgeText = statusLabel || '';
-
-  if (!statusLabel && hasBaseline) {
-    if (ratio > 1.05) {
-      badgeColor = isHigherBetter
-        ? 'bg-emerald-50 text-accent dark:bg-emerald-900/30'
-        : 'bg-amber-50 text-warning dark:bg-amber-900/30';
-      badgeText = `+${percentage}%`;
-    } else if (ratio < 0.95) {
-      badgeColor = isHigherBetter
-        ? 'bg-amber-50 text-warning dark:bg-amber-900/30'
-        : 'bg-emerald-50 text-accent dark:bg-emerald-900/30';
-      badgeText = `-${percentage}%`;
-    } else {
-      badgeColor = 'bg-emerald-50 text-accent dark:bg-emerald-900/30';
-      badgeText = 'Normal';
-    }
-  }
+  const safePercentage = Math.min(Math.max(percentage * 100, 0), 100);
 
   return (
-    <div className="bg-card dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-slate-700 hover:shadow-md transition-all duration-200 flex flex-col justify-between min-h-[140px]">
-      <div className="flex items-start justify-between">
-        <div className={`p-2.5 rounded-xl ${iconBgColor} transition-colors`}>
-          <Icon className={`w-5 h-5 ${iconColor}`} />
+    <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between relative overflow-hidden group">
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center space-x-2 text-slate-500 dark:text-slate-400">
+          <Icon className="w-5 h-5 text-blue-600" />
+          <span className="text-sm font-semibold">{title}</span>
         </div>
-        {badgeText && (
-          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${badgeColor}`}>
-            {badgeText}
-          </span>
+        <button className="text-slate-400 hover:text-slate-600 p-1 rounded-md">
+          <MoreVertical className="w-4 h-4" />
+        </button>
+      </div>
+
+      <div className="flex justify-between items-end">
+        <div>
+          <div className="flex items-baseline space-x-1">
+            <span className="text-3xl font-bold text-slate-900 dark:text-white font-sans">
+              {typeof value === 'number' ? value.toLocaleString('en-US') : value}
+            </span>
+            <span className="text-xs font-semibold text-slate-500">{unit}</span>
+          </div>
+          
+          {isLinear && (
+            <div className="mt-4">
+              <div className="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                <div className={`h-full ${color} rounded-full`} style={{ width: `${safePercentage}%` }}></div>
+              </div>
+              <div className="flex justify-between mt-2 text-xs font-medium text-slate-500">
+                <span>Daily Goal: {baseline?.toLocaleString('en-US') || 0}</span>
+                <span>{Math.round(safePercentage)}%</span>
+              </div>
+            </div>
+          )}
+
+          {!isLinear && !isSparkline && (
+            <div className="mt-2 text-xs font-medium text-green-500 flex items-center">
+              ↑ 12% vs yesterday
+            </div>
+          )}
+        </div>
+
+        {!isLinear && !isSparkline && (
+          <div className="relative w-16 h-16 flex items-center justify-center">
+            <svg className="w-full h-full transform -rotate-90">
+              <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-slate-100 dark:text-slate-700" />
+              <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray="175" strokeDashoffset={175 - (175 * safePercentage) / 100} className="text-blue-600 drop-shadow-sm transition-all duration-1000 ease-out" />
+            </svg>
+            <span className="absolute text-xs font-bold text-slate-700 dark:text-slate-200">{Math.round(safePercentage)}%</span>
+          </div>
+        )}
+
+        {isSparkline && (
+          <div className="w-24 h-12 flex items-end">
+            <svg viewBox="0 0 100 30" className="w-full h-full overflow-visible">
+              <polyline fill="none" stroke="currentColor" strokeWidth="2.5" className="text-red-500" strokeLinecap="round" strokeLinejoin="round" points="0,20 20,20 30,5 40,25 50,15 60,20 80,18 100,10" />
+              <circle cx="100" cy="10" r="3" fill="currentColor" className="text-red-500" />
+            </svg>
+          </div>
         )}
       </div>
-      <div className="mt-3">
-        <p className="text-sm text-textSecondary dark:text-slate-400 font-medium">{title}</p>
-        <div className="flex items-baseline space-x-1 mt-0.5">
-          <span className="text-2xl font-bold font-mono text-textPrimary dark:text-slate-100">
-            {typeof value === 'number' ? value.toLocaleString('id-ID') : value}
-          </span>
-          <span className="text-xs font-medium text-textSecondary dark:text-slate-500 uppercase">{unit}</span>
-        </div>
-      </div>
+      
+      {isSparkline && (
+        <span className="absolute top-4 right-4 bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">
+          Normal
+        </span>
+      )}
     </div>
   );
 };
