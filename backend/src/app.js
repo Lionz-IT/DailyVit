@@ -34,7 +34,7 @@ app.use('/', huaweiOAuthRouter);
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
-  message: { success: false, error: 'Terlalu banyak permintaan. Silakan coba lagi dalam 15 menit.' },
+  message: { success: false, error: 'Too many requests. Please try again in 15 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -95,7 +95,7 @@ app.get('/api/summary', authenticateToken, async (req, res, next) => {
   try {
     const date = parseDate(req.query.date);
     if (date === null) {
-      return res.status(400).json({ success: false, error: 'Format tanggal tidak valid. Gunakan YYYY-MM-DD.' });
+      return res.status(400).json({ success: false, error: 'Invalid date format. Use YYYY-MM-DD.' });
     }
 
     const userId = req.user.id;
@@ -115,7 +115,7 @@ app.get('/api/summary', authenticateToken, async (req, res, next) => {
         total_steps: 0,
         total_calories: 0,
         avg_heart_rate: 0,
-        smart_insight: "Belum ada data untuk hari ini.",
+        smart_insight: "No data available for this date.",
         baseline
       });
     }
@@ -137,7 +137,7 @@ app.get('/api/trend', authenticateToken, async (req, res, next) => {
   try {
     const date = parseDate(req.query.date);
     if (date === null) {
-      return res.status(400).json({ success: false, error: 'Format tanggal tidak valid. Gunakan YYYY-MM-DD.' });
+      return res.status(400).json({ success: false, error: 'Invalid date format. Use YYYY-MM-DD.' });
     }
 
     const userId = req.user.id;
@@ -173,7 +173,7 @@ app.get('/api/history', authenticateToken, async (req, res, next) => {
     const rawDays = req.query.days;
     const days = rawDays !== undefined ? parseInt(rawDays) : 7;
     if (isNaN(days) || days < 1 || days > 90) {
-      return res.status(400).json({ success: false, error: 'Parameter days harus berupa angka antara 1 dan 90.' });
+      return res.status(400).json({ success: false, error: 'Parameter days must be a number between 1 and 90.' });
     }
 
     const userId = req.user.id;
@@ -199,7 +199,7 @@ app.post('/api/sync', authenticateToken, async (req, res, next) => {
   try {
     const date = parseDate(req.body.date);
     if (date === null) {
-      return res.status(400).json({ success: false, error: 'Format tanggal tidak valid. Gunakan YYYY-MM-DD.' });
+      return res.status(400).json({ success: false, error: 'Invalid date format. Use YYYY-MM-DD.' });
     }
     
     // Pass the client's current hour to the sync job for more accurate mocking
@@ -219,7 +219,7 @@ app.use((err, req, res, _next) => {
   const isDev = process.env.NODE_ENV === 'development';
   res.status(statusCode).json({
     success: false,
-    error: isDev ? err.message : 'Terjadi kesalahan internal server.'
+    error: isDev ? err.message : 'An internal server error occurred.'
   });
 });
 

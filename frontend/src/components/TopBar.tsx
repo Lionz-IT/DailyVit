@@ -1,22 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bell, Search, Sun, Moon, HelpCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 
 export const TopBar: React.FC = () => {
   const { isAuthenticated } = useAuth();
-  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
+  const [isDark, setIsDark] = useState(() => {
+    const saved = localStorage.getItem('darkMode');
+    if (saved !== null) return saved === 'true';
+    return document.documentElement.classList.contains('dark');
+  });
 
-  const toggleTheme = () => {
+  useEffect(() => {
     const root = document.documentElement;
     if (isDark) {
-      root.classList.remove('dark');
-      setIsDark(false);
-    } else {
       root.classList.add('dark');
-      setIsDark(true);
+    } else {
+      root.classList.remove('dark');
     }
-  };
+    localStorage.setItem('darkMode', String(isDark));
+  }, [isDark]);
+
+  const toggleTheme = () => setIsDark(prev => !prev);
 
   return (
     <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 h-16 px-4 lg:px-8 flex items-center justify-between sticky top-0 z-30 transition-colors">

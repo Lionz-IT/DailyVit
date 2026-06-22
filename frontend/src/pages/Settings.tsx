@@ -25,8 +25,8 @@ export const Settings: React.FC = () => {
       const res = await api.getHuaweiStatus();
       setHuaweiStatus(res.data);
       setError(null);
-    } catch (err: any) {
-      setError('Gagal mengambil status koneksi Huawei.');
+    } catch (err: unknown) {
+      setError('Failed to fetch Huawei connection status.');
       console.error(err);
     } finally {
       setLoading(false);
@@ -44,8 +44,8 @@ export const Settings: React.FC = () => {
       setLoading(true);
       await api.disconnectHuawei();
       await fetchHuaweiStatus();
-    } catch (err: any) {
-      setError('Gagal memutuskan tautan.');
+    } catch (err: unknown) {
+      setError('Failed to disconnect.');
       console.error(err);
       setLoading(false);
     }

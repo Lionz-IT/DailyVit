@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { type DailySummary } from '../types/health';
 
 export const SmartInsight: React.FC = () => {
   const { isAuthenticated } = useAuth();
-  const [summary, setSummary] = useState<any>(null);
+  const [summary, setSummary] = useState<DailySummary | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,7 +35,7 @@ export const SmartInsight: React.FC = () => {
   if (!isAuthenticated) {
     return (
       <div className="p-8 text-center text-slate-500">
-        Silakan login untuk melihat Smart Insight.
+        Please log in to view Smart Insight.
       </div>
     );
   }
@@ -100,7 +101,7 @@ export const SmartInsight: React.FC = () => {
           </div>
           <div className="mt-auto bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg">
             <p className="text-xs font-bold text-amber-600 mb-1">Smart Insight</p>
-            <p className="text-sm text-amber-800">Aktivitasmu hari ini jauh di bawah kebiasaan. Yuk gerak sedikit lagi sebelum hari berakhir.</p>
+            <p className="text-sm text-amber-800">{summary?.smart_insight || 'No insight available.'}</p>
           </div>
         </div>
 
@@ -136,7 +137,7 @@ export const SmartInsight: React.FC = () => {
           </div>
           <div className="mt-auto bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
             <p className="text-xs font-bold text-red-600 mb-1">Smart Insight</p>
-            <p className="text-sm text-red-800">Detak jantung di atas kebiasaan padahal aktivitas rendah. Perhatikan kondisimu & istirahat cukup.</p>
+            <p className="text-sm text-red-800">{summary?.smart_insight || 'No insight available.'}</p>
           </div>
         </div>
 
@@ -167,7 +168,7 @@ export const SmartInsight: React.FC = () => {
 
           <div className="mt-auto bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
             <p className="text-xs font-bold text-blue-600 mb-1">Smart Insight</p>
-            <p className="text-sm text-blue-800">Masih jauh dari target hari ini, ayo lanjut bergerak agar target tercapai!</p>
+            <p className="text-sm text-blue-800">{summary?.smart_insight || 'No insight available.'}</p>
           </div>
         </div>
       </div>

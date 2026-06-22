@@ -26,7 +26,7 @@ export const Sidebar: React.FC = () => {
       window.location.reload();
     } catch (err) {
       console.error(err);
-      alert('Gagal melakukan sinkronisasi');
+      alert('Sync failed. Please try again.');
     } finally {
       setSyncing(false);
     }

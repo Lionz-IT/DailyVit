@@ -6,6 +6,8 @@ import { Dashboard } from './pages/Dashboard';
 import { History } from './pages/History';
 import { SmartInsight } from './pages/SmartInsight';
 import { Settings } from './pages/Settings';
+import { Patients } from './pages/Patients';
+import { Vitals } from './pages/Vitals';
 import { PrivacyPolicy } from './pages/PrivacyPolicy';
 import { TermsOfService } from './pages/TermsOfService';
 import { Login } from './pages/Login';
@@ -21,6 +23,8 @@ const AppContent: React.FC = () => {
         <main className="flex-1 overflow-y-auto relative">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/patients" element={<Patients />} />
+            <Route path="/vitals" element={<Vitals />} />
             <Route path="/history" element={<History />} />
             <Route path="/smart-insight" element={<SmartInsight />} />
             <Route path="/settings" element={<Settings />} />

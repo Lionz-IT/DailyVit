@@ -40,12 +40,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setToken(res.data.token);
         return null;
       }
-      return res.data.error || 'Login gagal.';
+      return res.data.error || 'Login failed.';
     } catch (err: unknown) {
       if (axios.isAxiosError(err) && err.response?.data?.error) {
         return err.response.data.error;
       }
-      return 'Tidak dapat terhubung ke server.';
+      return 'Unable to connect to the server.';
     }
   };
 

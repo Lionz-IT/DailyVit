@@ -11,30 +11,30 @@ function generateSmartInsight(todaySummary, baseline) {
   const calRatio   = total_calories / baseCal;
 
   if (stepRatio < 0.3 && hrRatio > 1.2) {
-    return "\u26a0\ufe0f Aktivitasmu sangat rendah hari ini namun detak jantungmu lebih tinggi dari biasanya. Pastikan kamu cukup beristirahat dan terhidrasi. Jika merasa tidak nyaman, pertimbangkan untuk konsultasi ke dokter.";
+    return "\u26a0\ufe0f Your activity is very low today but your heart rate is higher than usual. Make sure you rest and stay hydrated. If you feel unwell, consider consulting a doctor.";
   }
 
   if (stepRatio < 0.4) {
-    return "\ud83e\ude91 Kamu kurang bergerak hari ini. Coba luangkan 10\u201315 menit untuk berjalan santai \u2014 aktivitas ringan pun sangat membantu menjaga kesehatan jantung dan metabolisme.";
+    return "\ud83e\ude91 You haven't moved much today. Try taking a 10\u201315 minute walk \u2014 even light activity helps maintain heart health and metabolism.";
   }
 
   if (stepRatio >= 1.3 && hrRatio <= 1.15) {
-    return "\ud83c\udf1f Luar biasa! Aktivitasmu hari ini jauh melampaui rata-rata harianmu. Jangan lupa istirahat yang cukup dan pastikan tubuhmu pulih dengan baik.";
+    return "\ud83c\udf1f Outstanding! Your activity today far exceeds your daily average. Don't forget to rest enough and let your body recover well.";
   }
 
   if (stepRatio >= 1.0 && stepRatio < 1.3) {
-    return "\u2705 Aktivitasmu hari ini sudah baik dan sesuai targetmu. Pertahankan pola ini untuk menjaga kesehatan jangka panjang!";
+    return "\u2705 Your activity today is good and meets your target. Keep up this pattern to maintain long-term health!";
   }
 
   if (stepRatio >= 0.4 && stepRatio < 0.7) {
-    return "\ud83d\udcc8 Aktivitasmu hari ini sedikit di bawah rata-rata harianmu. Coba tambahkan sedikit gerakan di sore hari untuk mendekati targetmu.";
+    return "\ud83d\udcc8 Your activity today is slightly below your daily average. Try adding some movement in the afternoon to get closer to your target.";
   }
 
   if (hrRatio > 1.3 && stepRatio < 0.5) {
-    return "\ud83d\udc93 Detak jantungmu hari ini lebih tinggi dari biasanya meski aktivitasmu rendah. Pastikan kamu cukup minum air putih dan mendapat istirahat yang berkualitas malam ini.";
+    return "\ud83d\udc93 Your heart rate today is higher than usual despite low activity. Make sure you drink enough water and get quality rest tonight.";
   }
 
-  return "\ud83d\ude0a Hari ini aktivitasmu berjalan normal. Tetap jaga pola makan seimbang dan tidur yang cukup untuk mempertahankan kondisi kesehatanmu!";
+  return "\ud83d\ude0a Your activity today is normal. Keep maintaining a balanced diet and adequate sleep to sustain your health condition!";
 }
 
 async function updateBaseline(client, userId) {

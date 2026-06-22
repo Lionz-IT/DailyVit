@@ -5,6 +5,7 @@ import { api } from '../services/api';
 import type { DailySummary, TrendData } from '../types/health';
 import { SummaryCard } from '../components/SummaryCard';
 import { TrendChart } from '../components/TrendChart';
+import { SmartInsightPanel } from '../components/SmartInsightPanel';
 import { useAuth } from '../context/AuthContext';
 
 export const Dashboard: React.FC = () => {
@@ -18,9 +19,7 @@ export const Dashboard: React.FC = () => {
   const [summary, setSummary] = useState<DailySummary | null>(null);
   const [trend, setTrend] = useState<TrendData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [syncing, setSyncing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [syncError, setSyncError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -33,7 +32,7 @@ export const Dashboard: React.FC = () => {
             total_steps: 0,
             total_calories: 0,
             avg_heart_rate: 0,
-            smart_insight: 'Halo! Silakan login untuk mulai melacak aktivitas.',
+            smart_insight: 'Hello! Please log in to start tracking your activity.',
             baseline: { avg_steps: 0, avg_heart_rate: 0, avg_calories: 0 }
           });
           setTrend({ date: date, hourlyData: [] });
@@ -55,7 +54,7 @@ export const Dashboard: React.FC = () => {
         }
       } catch (err) {
         if (isMounted) {
-          const message = err instanceof Error ? err.message : 'Gagal memuat data.';
+          const message = err instanceof Error ? err.message : 'Failed to load data.';
           setError(message);
           setSummary(null);
           setTrend(null);
@@ -79,38 +78,6 @@ export const Dashboard: React.FC = () => {
     navigate(`/?date=${newDate}`);
   };
 
-  const handleSync = async () => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-    
-    setSyncing(true);
-    setSyncError(null);
-    try {
-      const currentHour = new Date().getHours();
-      await api.triggerSync(date, currentHour);
-      setLoading(true);
-      try {
-        const [summaryRes, trendRes] = await Promise.all([
-          api.getSummary(date),
-          api.getTrend(date),
-        ]);
-        setSummary(summaryRes.data);
-        setTrend(trendRes.data);
-      } catch {
-        setError('Gagal memperbarui data setelah sinkronisasi.');
-      } finally {
-        setLoading(false);
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Gagal menyinkronkan data.';
-      setSyncError(message);
-    } finally {
-      setSyncing(false);
-    }
-  };
-
   return (
     <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
@@ -130,13 +97,6 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {syncError && (
-        <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-xl flex items-center space-x-3 border border-red-100 dark:border-red-900/30">
-          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-          <p className="text-sm font-medium">{syncError}</p>
-        </div>
-      )}
 
       {error && (
         <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-xl flex items-center space-x-3 border border-red-100 dark:border-red-900/30">
@@ -179,23 +139,9 @@ export const Dashboard: React.FC = () => {
         </div>
       )}
 
-      <div className="bg-blue-600 text-white rounded-xl p-6 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
-        <div className="flex items-start space-x-4 z-10">
-          <div className="bg-white/20 p-2 rounded-full mt-1">
-            <span className="text-xl">💡</span>
-          </div>
-          <div>
-            <h3 className="text-lg font-bold mb-1">Optimal Recovery Window</h3>
-            <p className="text-blue-100 text-sm leading-relaxed max-w-2xl">
-              Your heart rate variability indicates excellent recovery. Today is ideal for high-intensity cardiovascular training. Consider a 45-minute structured workout to maximize health benefits.
-            </p>
-          </div>
-        </div>
-        <button className="whitespace-nowrap px-5 py-2.5 bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors z-10 text-sm" onClick={handleSync} disabled={syncing}>
-          {syncing ? 'Syncing...' : 'View Plan'}
-        </button>
-      </div>
+      {!loading && summary?.smart_insight && (
+        <SmartInsightPanel insight={summary.smart_insight} />
+      )}
 
       <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
         <div className="flex justify-between items-center mb-6">

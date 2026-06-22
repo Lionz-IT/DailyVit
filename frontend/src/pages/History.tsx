@@ -5,6 +5,7 @@ import type { HistoryItem } from '../types/health';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { Calendar, Download, Footprints, Flame, Moon, Heart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { WeeklyChart } from '../components/WeeklyChart';
 
 export const History: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -81,7 +82,6 @@ export const History: React.FC = () => {
                   <Footprints className="w-4 h-4 text-blue-500" />
                   <span className="text-sm font-medium">Avg Steps/Day</span>
                 </div>
-                <span className="bg-emerald-50 text-emerald-600 text-xs px-2 py-0.5 rounded font-bold">+5%</span>
               </div>
               <div className="text-3xl font-bold text-slate-900 dark:text-white mt-1">{avgSteps.toLocaleString('en-US')}</div>
             </div>
@@ -92,7 +92,6 @@ export const History: React.FC = () => {
                   <Flame className="w-4 h-4 text-orange-500" />
                   <span className="text-sm font-medium">Total Calories</span>
                 </div>
-                <span className="bg-emerald-50 text-emerald-600 text-xs px-2 py-0.5 rounded font-bold">+2%</span>
               </div>
               <div className="flex items-baseline space-x-1 mt-1">
                 <span className="text-3xl font-bold text-slate-900 dark:text-white">{totalCalories.toLocaleString('en-US')}</span>
@@ -106,12 +105,11 @@ export const History: React.FC = () => {
                   <Moon className="w-4 h-4 text-indigo-500" />
                   <span className="text-sm font-medium">Avg Sleep</span>
                 </div>
-                <span className="bg-slate-100 text-slate-500 text-xs px-2 py-0.5 rounded font-bold">-0%</span>
               </div>
               <div className="flex items-baseline space-x-1 mt-1">
-                <span className="text-3xl font-bold text-slate-900 dark:text-white">7</span><span className="text-sm font-semibold text-slate-500">h</span>
-                <span className="text-3xl font-bold text-slate-900 dark:text-white ml-1">20</span><span className="text-sm font-semibold text-slate-500">m</span>
+                <span className="text-3xl font-bold text-slate-900 dark:text-white">N/A</span>
               </div>
+              <p className="text-xs text-slate-400 mt-1">Sleep data not available</p>
             </div>
 
             <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
@@ -120,7 +118,6 @@ export const History: React.FC = () => {
                   <Heart className="w-4 h-4 text-red-500" />
                   <span className="text-sm font-medium">Avg Heart Rate</span>
                 </div>
-                <span className="bg-red-50 text-red-600 text-xs px-2 py-0.5 rounded font-bold">-1%</span>
               </div>
               <div className="flex items-baseline space-x-1 mt-1">
                 <span className="text-3xl font-bold text-slate-900 dark:text-white">{avgHR}</span>
@@ -128,6 +125,8 @@ export const History: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {history.length > 0 && <WeeklyChart data={history} />}
 
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
             <div className="p-5 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">

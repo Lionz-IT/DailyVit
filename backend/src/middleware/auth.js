@@ -13,7 +13,7 @@ function authenticateToken(req, res, next) {
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-    return res.status(401).json({ success: false, error: 'Token autentikasi diperlukan.' });
+    return res.status(401).json({ success: false, error: 'Authentication token required.' });
   }
 
   try {
@@ -21,7 +21,7 @@ function authenticateToken(req, res, next) {
     req.user = decoded;
     next();
   } catch (err) {
-    return res.status(403).json({ success: false, error: 'Token tidak valid atau sudah kedaluwarsa.' });
+    return res.status(403).json({ success: false, error: 'Invalid or expired token.' });
   }
 }
 
@@ -65,7 +65,7 @@ async function loginHandler(req, res, next) {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ success: false, error: 'Email dan password diperlukan.' });
+      return res.status(400).json({ success: false, error: 'Email and password are required.' });
     }
 
     const db = require('../config/db');
@@ -73,12 +73,12 @@ async function loginHandler(req, res, next) {
     const user = result.rows[0];
 
     if (!user) {
-      return res.status(401).json({ success: false, error: 'Email atau password salah.' });
+      return res.status(401).json({ success: false, error: 'Invalid email or password.' });
     }
 
     const validPassword = await bcrypt.compare(password, user.password_hash);
     if (!validPassword) {
-      return res.status(401).json({ success: false, error: 'Email atau password salah.' });
+      return res.status(401).json({ success: false, error: 'Invalid email or password.' });
     }
 
     const token = jwt.sign(
