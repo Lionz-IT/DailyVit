@@ -41,7 +41,7 @@ export const SleepCard: React.FC = () => {
         </div>
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 rounded-full bg-blue-400" />
+            <div className="w-2 h-2 rounded-full bg-teal-400" />
             <span className="text-sm text-textSecondary dark:text-slate-400">REM</span>
           </div>
           <span className="text-sm font-mono font-medium text-textPrimary dark:text-slate-200">--</span>

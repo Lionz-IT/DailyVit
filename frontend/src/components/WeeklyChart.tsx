@@ -78,7 +78,7 @@ export const WeeklyChart: React.FC<WeeklyChartProps> = ({ data }) => {
         label: 'Detak Jantung',
         data: sorted.map(d => d.avg_heart_rate === 0 ? null : d.avg_heart_rate),
         borderColor: '#3b82f6',
-        backgroundColor: 'rgba(59, 130, 246, 0.05)',
+        backgroundColor: 'rgba(13, 148, 136, 0.05)',
         borderWidth: 2.5,
         tension: 0.4,
         pointRadius: 4,
@@ -148,8 +148,8 @@ export const WeeklyChart: React.FC<WeeklyChartProps> = ({ data }) => {
   return (
     <div className="bg-card dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700 transition-colors">
       <div className="mb-4">
-        <h3 className="text-lg font-bold text-textPrimary dark:text-slate-100">Aktivitas 7 Hari Terakhir</h3>
-        <p className="text-sm text-textSecondary dark:text-slate-400">Cross-analysis detak jantung & langkah kaki</p>
+        <h3 className="text-lg font-bold text-textPrimary dark:text-slate-100">Last 7 Days Activity</h3>
+        <p className="text-sm text-textSecondary dark:text-slate-400">Cross-analysis of heart rate & steps</p>
       </div>
       <div className="h-72 w-full">
         <Chart type="bar" data={chartData} options={options} />

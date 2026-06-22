@@ -51,31 +51,30 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
   }, []);
 
   const textColor = isDark ? '#f1f5f9' : '#1e293b';
-  const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
 
   const chartData = {
     labels: data.map(d => d.label),
     datasets: [
       {
         type: 'bar' as const,
-        label: 'Langkah Kaki',
+        label: 'Steps',
         data: data.map(d => d.steps),
-        backgroundColor: 'rgba(22, 163, 74, 0.7)',
-        borderRadius: 4,
+        backgroundColor: 'rgba(13, 148, 136, 0.8)',
+        borderRadius: 10,
         yAxisID: 'y',
         order: 2
       },
       {
         type: 'line' as const,
-        label: 'Detak Jantung (bpm)',
+        label: 'Heart Rate (bpm)',
         data: data.map(d => d.heartRate === 0 ? null : d.heartRate),
-        borderColor: '#3B82F6',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-        borderWidth: 3,
-        tension: 0.4,
+        borderColor: '#0D9488',
+        backgroundColor: 'rgba(13, 148, 136, 0.1)',
+        borderWidth: 4,
+        tension: 0.5,
         pointRadius: 3,
         pointBackgroundColor: isDark ? '#1e293b' : '#ffffff',
-        pointBorderColor: '#3B82F6',
+        pointBorderColor: '#0D9488',
         pointBorderWidth: 2,
         spanGaps: true,
         yAxisID: 'y1',
@@ -124,8 +123,8 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
         type: 'linear' as const,
         display: true,
         position: 'left' as const,
-        title: { display: true, text: 'Langkah', color: textColor },
-        grid: { color: gridColor },
+        title: { display: true, text: 'Steps', color: textColor },
+        grid: { display: false },
         ticks: { color: textColor }
       },
       y1: {
@@ -133,7 +132,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
         display: true,
         position: 'right' as const,
         title: { display: true, text: 'BPM', color: textColor },
-        grid: { drawOnChartArea: false },
+        grid: { display: false },
         ticks: { color: textColor },
         min: 40,
         max: 200
@@ -142,8 +141,8 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
   };
 
   return (
-    <div className="bg-card dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700 h-full flex flex-col transition-colors duration-200">
-      <h3 className="text-lg font-bold text-textPrimary dark:text-slate-100 mb-6 transition-colors">Aktivitas & Detak Jantung – 24 Jam</h3>
+    <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-full flex flex-col transition-colors duration-200">
+      <h3 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 mb-6 transition-colors">Activity & Heart Rate – 24 Hours</h3>
       <div className="flex-1 w-full min-h-[300px] relative">
         <Chart type="bar" data={chartData} options={options} />
       </div>

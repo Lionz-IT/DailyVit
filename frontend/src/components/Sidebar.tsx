@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Activity, Settings, LogOut, Menu, X, Users, HeartPulse, LineChart, Sparkles, RefreshCw } from 'lucide-react';
+import { LayoutDashboard, Settings, LogOut, Menu, X, LineChart, Sparkles, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 
 const navItems = [
-  { path: '/', label: 'Dashboard', icon: Activity },
-  { path: '/patients', label: 'Patients', icon: Users },
-  { path: '/vitals', label: 'Vitals', icon: HeartPulse },
+  { path: '/', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/history', label: 'Analytics', icon: LineChart },
   { path: '/smart-insight', label: 'Smart Insight', icon: Sparkles },
   { path: '/settings', label: 'Settings', icon: Settings },
@@ -17,6 +15,7 @@ export const Sidebar: React.FC = () => {
   const { logout, isAuthenticated } = useAuth();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [syncing, setSyncing] = useState(false);
 
   const handleSync = async () => {
@@ -34,19 +33,21 @@ export const Sidebar: React.FC = () => {
 
   const nav = (
     <>
-      <div className="p-6">
-        <Link to="/" className="flex items-center space-x-3">
-          <div className="bg-blue-600 rounded-lg p-1.5 flex items-center justify-center">
-            <Activity className="w-6 h-6 text-white" />
+      <div className={`p-6 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+        <Link to="/" className={`flex items-center ${isCollapsed ? 'justify-center' : 'space-x-3'}`}>
+          <div className="flex items-center justify-center flex-shrink-0">
+            <img src="/dailyvit-logo.png" alt="DailyVit Logo" className="w-9 h-9 object-contain" />
           </div>
-          <div className="flex flex-col">
-            <span className="text-xl font-bold text-slate-800 dark:text-white leading-tight">DailyVit</span>
-            <span className="text-[10px] text-slate-500 font-medium leading-none">Health Monitoring</span>
-          </div>
+          {!isCollapsed && (
+            <div className="flex flex-col whitespace-nowrap overflow-hidden transition-all duration-300">
+              <span className="text-xl font-bold text-slate-800 dark:text-white leading-tight">DailyVit</span>
+              <span className="text-[10px] text-slate-500 font-medium leading-none">Health Monitoring</span>
+            </div>
+          )}
         </Link>
       </div>
 
-      <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
+      <nav className={`flex-1 space-y-2 overflow-y-auto mt-6 ${isCollapsed ? 'px-3' : 'px-4'}`}>
         {navItems.map(({ path, label, icon: Icon }) => {
           const isActive = location.pathname === path;
           return (
@@ -54,38 +55,41 @@ export const Sidebar: React.FC = () => {
               key={path}
               to={path}
               onClick={() => setMobileOpen(false)}
-              className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+              title={isCollapsed ? label : undefined}
+              className={`flex items-center ${isCollapsed ? 'justify-center py-4 px-3' : 'space-x-4 py-4 px-5'} rounded-2xl text-base font-bold transition-all duration-200 ${
                 isActive
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                  ? 'bg-teal-600 text-white shadow-md shadow-teal-500/20'
                   : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/50'
               }`}
             >
-              <Icon className="w-5 h-5" />
-              <span>{label}</span>
+              <Icon className="w-5 h-5 flex-shrink-0" />
+              {!isCollapsed && <span className="whitespace-nowrap">{label}</span>}
             </Link>
           );
         })}
       </nav>
 
-      <div className="p-4 mt-auto space-y-3">
+      <div className={`p-4 mt-auto space-y-3 border-t border-slate-100 dark:border-slate-800/50 pt-6 ${isCollapsed ? 'px-3' : 'px-4'}`}>
         {isAuthenticated && (
           <button
             onClick={handleSync}
             disabled={syncing}
-            className="flex items-center justify-center space-x-2 w-full px-4 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-sm disabled:opacity-70"
+            title={isCollapsed ? 'Sync Data' : undefined}
+            className={`flex items-center justify-center ${isCollapsed ? 'px-3' : 'space-x-3 px-4'} py-3 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-xl transition-all duration-200 shadow-sm disabled:opacity-70`}
           >
-            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
-            <span>{syncing ? 'Syncing...' : 'Sync Data'}</span>
+            <RefreshCw className={`w-5 h-5 flex-shrink-0 ${syncing ? 'animate-spin' : ''}`} />
+            {!isCollapsed && <span className="whitespace-nowrap">{syncing ? 'Syncing...' : 'Sync Data'}</span>}
           </button>
         )}
         
         {isAuthenticated && (
           <button
             onClick={logout}
-            className="flex items-center space-x-3 w-full px-4 py-3 text-sm font-medium text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+            title={isCollapsed ? 'Logout' : undefined}
+            className={`flex items-center justify-center ${isCollapsed ? 'px-3' : 'space-x-3 px-4'} py-3 text-sm font-medium text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all duration-200`}
           >
-            <LogOut className="w-5 h-5" />
-            <span>Logout</span>
+            <LogOut className="w-5 h-5 flex-shrink-0" />
+            {!isCollapsed && <span className="whitespace-nowrap">Logout</span>}
           </button>
         )}
       </div>
@@ -109,9 +113,20 @@ export const Sidebar: React.FC = () => {
         />
       )}
 
-      <aside className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transform transition-transform duration-200 ${
-        mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      <aside className={`relative fixed lg:static inset-y-0 left-0 z-40 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transform transition-all duration-300 ease-in-out ${
+        isCollapsed ? 'w-20' : 'w-72'
+      } ${
+        mobileOpen ? 'translate-x-0 w-72' : '-translate-x-full lg:translate-x-0'
       }`}>
+        {/* Floating Collapse Button */}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="hidden lg:flex absolute -right-3.5 top-9 z-50 items-center justify-center w-7 h-7 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full text-slate-400 hover:text-teal-600 hover:border-teal-500 shadow-sm transition-all"
+          aria-label="Toggle Sidebar"
+        >
+          {isCollapsed ? <ChevronRight className="w-4 h-4 ml-0.5" /> : <ChevronLeft className="w-4 h-4 pr-0.5" />}
+        </button>
+
         {nav}
       </aside>
     </>

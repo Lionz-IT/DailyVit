@@ -37,13 +37,13 @@ export const History: React.FC = () => {
   const avgHR = history.length > 0 ? Math.round(history.reduce((acc, curr) => acc + curr.avg_heart_rate, 0) / history.length) : 0;
 
   const getStatusBadge = (steps: number) => {
-    if (steps > 8000) return <span className="bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-xs font-bold">Goal Reached</span>;
+    if (steps > 8000) return <span className="bg-teal-100 text-teal-600 px-3 py-1 rounded-full text-xs font-bold">Goal Reached</span>;
     if (steps > 5000) return <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold">Active</span>;
     return <span className="bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-xs font-bold">Light</span>;
   };
 
   return (
-    <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 max-w-7xl mx-auto">
+    <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 w-full min-h-full">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">Statistics History</h1>
@@ -66,7 +66,7 @@ export const History: React.FC = () => {
           </p>
           <button
             onClick={() => navigate('/login')}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors"
+            className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors"
           >
             Login Now
           </button>
@@ -79,7 +79,7 @@ export const History: React.FC = () => {
             <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
               <div className="flex justify-between items-center text-slate-500 mb-2">
                 <div className="flex items-center space-x-2">
-                  <Footprints className="w-4 h-4 text-blue-500" />
+                  <Footprints className="w-4 h-4 text-teal-500" />
                   <span className="text-sm font-medium">Avg Steps/Day</span>
                 </div>
               </div>
@@ -89,7 +89,7 @@ export const History: React.FC = () => {
             <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
               <div className="flex justify-between items-center text-slate-500 mb-2">
                 <div className="flex items-center space-x-2">
-                  <Flame className="w-4 h-4 text-orange-500" />
+                  <Flame className="w-4 h-4 text-teal-500" />
                   <span className="text-sm font-medium">Total Calories</span>
                 </div>
               </div>
@@ -102,7 +102,7 @@ export const History: React.FC = () => {
             <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
               <div className="flex justify-between items-center text-slate-500 mb-2">
                 <div className="flex items-center space-x-2">
-                  <Moon className="w-4 h-4 text-indigo-500" />
+                  <Moon className="w-4 h-4 text-teal-500" />
                   <span className="text-sm font-medium">Avg Sleep</span>
                 </div>
               </div>
@@ -115,7 +115,7 @@ export const History: React.FC = () => {
             <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
               <div className="flex justify-between items-center text-slate-500 mb-2">
                 <div className="flex items-center space-x-2">
-                  <Heart className="w-4 h-4 text-red-500" />
+                  <Heart className="w-4 h-4 text-rose-500" />
                   <span className="text-sm font-medium">Avg Heart Rate</span>
                 </div>
               </div>
@@ -131,7 +131,7 @@ export const History: React.FC = () => {
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
             <div className="p-5 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">Daily Breakdown</h3>
-              <button className="text-blue-600 hover:text-blue-700 text-sm font-semibold flex items-center space-x-1 transition-colors">
+              <button className="text-teal-600 hover:text-teal-700 text-sm font-semibold flex items-center space-x-1 transition-colors">
                 <span>Export Report</span>
                 <Download className="w-4 h-4" />
               </button>
@@ -161,7 +161,7 @@ export const History: React.FC = () => {
                         <td className="py-4 px-6 text-sm font-medium text-slate-700 dark:text-slate-300">
                           {formattedDate}
                         </td>
-                        <td className="py-4 px-6 text-sm text-blue-600 font-semibold">
+                        <td className="py-4 px-6 text-sm text-teal-600 font-semibold">
                           {item.total_steps.toLocaleString('en-US')}
                         </td>
                         <td className="py-4 px-6 text-sm text-slate-600 dark:text-slate-400">
