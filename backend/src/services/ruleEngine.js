@@ -1,40 +1,46 @@
 function generateSmartInsight(todaySummary, baseline) {
-  const { total_steps, avg_heart_rate, total_calories } = todaySummary;
+  const { total_steps, avg_heart_rate } = todaySummary;
 
-  // Guard against division by zero — use safe defaults when baseline is 0 or missing
-  const baseSteps = baseline.avg_steps > 0 ? baseline.avg_steps : 7000;
-  const baseHR = baseline.avg_heart_rate > 0 ? baseline.avg_heart_rate : 75;
-  const baseCal = baseline.avg_calories > 0 ? baseline.avg_calories : 450;
+  const baseSteps = (baseline && baseline.avg_steps > 0) ? baseline.avg_steps : 7000;
+  const baseHR = (baseline && baseline.avg_heart_rate > 0) ? baseline.avg_heart_rate : 75;
 
-  const stepRatio  = total_steps / baseSteps;
-  const hrRatio    = avg_heart_rate / baseHR;
-  const calRatio   = total_calories / baseCal;
+  const stepRatio = total_steps / baseSteps;
+  const hrRatio = avg_heart_rate / baseHR;
 
-  if (stepRatio < 0.3 && hrRatio > 1.2) {
-    return "\u26a0\ufe0f Your activity is very low today but your heart rate is higher than usual. Make sure you rest and stay hydrated. If you feel unwell, consider consulting a doctor.";
+  // Trend Deviation
+  let trendDeviation = { en: "Your activity trend is normal.", id: "Tren aktivitas Anda normal." };
+  if (stepRatio < 0.5) {
+    trendDeviation = {
+      en: "Warning: Your activity is significantly below baseline.",
+      id: "Peringatan: Aktivitas Anda jauh di bawah rata-rata."
+    };
+  } else if (stepRatio >= 1.2) {
+    trendDeviation = {
+      en: "Great job! Your activity is well above your baseline.",
+      id: "Kerja bagus! Aktivitas Anda jauh di atas rata-rata."
+    };
   }
 
-  if (stepRatio < 0.4) {
-    return "\ud83e\ude91 You haven't moved much today. Try taking a 10\u201315 minute walk \u2014 even light activity helps maintain heart health and metabolism.";
+  // Health Status
+  let healthStatus = { en: "Your heart rate is within normal ranges.", id: "Detak jantung Anda dalam batas normal." };
+  if (hrRatio > 1.1) {
+    healthStatus = {
+      en: "Warning: Your heart rate is elevated without exercise.",
+      id: "Peringatan: Detak jantung Anda meningkat tanpa olahraga."
+    };
   }
 
-  if (stepRatio >= 1.3 && hrRatio <= 1.15) {
-    return "\ud83c\udf1f Outstanding! Your activity today far exceeds your daily average. Don't forget to rest enough and let your body recover well.";
-  }
+  // Daily Target
+  let targetSteps = Math.round(baseSteps * 1.05);
+  if (targetSteps < 3000) targetSteps = 3000;
+  if (targetSteps > 15000) targetSteps = 15000;
 
-  if (stepRatio >= 1.0 && stepRatio < 1.3) {
-    return "\u2705 Your activity today is good and meets your target. Keep up this pattern to maintain long-term health!";
-  }
+  let dailyTarget = {
+    en: `Your daily target is ${targetSteps} steps.`,
+    id: `Target harian Anda adalah ${targetSteps} langkah.`
+  };
 
-  if (stepRatio >= 0.4 && stepRatio < 0.7) {
-    return "\ud83d\udcc8 Your activity today is slightly below your daily average. Try adding some movement in the afternoon to get closer to your target.";
-  }
-
-  if (hrRatio > 1.3 && stepRatio < 0.5) {
-    return "\ud83d\udc93 Your heart rate today is higher than usual despite low activity. Make sure you drink enough water and get quality rest tonight.";
-  }
-
-  return "\ud83d\ude0a Your activity today is normal. Keep maintaining a balanced diet and adequate sleep to sustain your health condition!";
+  return { trendDeviation, healthStatus, dailyTarget };
 }
 
 async function updateBaseline(client, userId) {

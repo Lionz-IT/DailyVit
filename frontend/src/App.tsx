@@ -10,6 +10,7 @@ import { PrivacyPolicy } from './pages/PrivacyPolicy';
 import { TermsOfService } from './pages/TermsOfService';
 import { Login } from './pages/Login';
 import { AuthProvider } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 const AppContent: React.FC = () => {
@@ -39,9 +40,11 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <Router>
-          <AppContent />
-        </Router>
+        <LanguageProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </LanguageProvider>
       </AuthProvider>
     </ErrorBoundary>
   );

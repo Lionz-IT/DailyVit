@@ -1,10 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Search, Sun, Moon, HelpCircle } from 'lucide-react';
+import { Bell, Search, Sun, Moon, HelpCircle, Globe } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { Link } from 'react-router-dom';
+
+const translations = {
+  en: {
+    search: 'Search records...',
+    synced: 'Smartwatch Synced',
+    login: 'Login',
+  },
+  id: {
+    search: 'Cari rekam medis...',
+    synced: 'Jam Tangan Disinkronkan',
+    login: 'Masuk',
+  }
+};
 
 export const TopBar: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const { language, toggleLanguage } = useLanguage();
+  const t = translations[language];
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     if (saved !== null) return saved === 'true';
@@ -32,7 +48,7 @@ export const TopBar: React.FC = () => {
           </div>
           <input
             type="text"
-            placeholder="Search records..."
+            placeholder={t.search}
             className="block w-full pl-12 pr-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl leading-5 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm transition-colors shadow-sm"
           />
         </div>
@@ -41,10 +57,18 @@ export const TopBar: React.FC = () => {
       <div className="flex items-center space-x-3 lg:space-x-4">
         {isAuthenticated ? (
           <>
-            <div className="hidden sm:flex items-center px-3 py-1.5 bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 rounded-full border border-teal-100 dark:border-teal-900/30">
-              <div className="w-2 h-2 rounded-full bg-teal-500 mr-2" />
-              <span className="text-xs font-semibold">Smartwatch Synced</span>
+            <div className="hidden sm:flex items-center justify-center w-[185px] py-1.5 bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 rounded-full border border-teal-100 dark:border-teal-900/30 whitespace-nowrap">
+              <div className="w-2 h-2 rounded-full bg-teal-500 mr-2 shrink-0" />
+              <span className="text-xs font-semibold">{t.synced}</span>
             </div>
+
+            <button
+              onClick={toggleLanguage}
+              className="px-3 py-1.5 flex items-center gap-1.5 text-teal-600 dark:text-teal-400 bg-teal-50 hover:bg-teal-100 dark:bg-teal-900/20 dark:hover:bg-teal-900/40 rounded-full transition-colors border border-teal-100 dark:border-teal-900/30 focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-xs"
+            >
+              <Globe className="w-3.5 h-3.5" />
+              <span>{language.toUpperCase()}</span>
+            </button>
 
             <button
               onClick={toggleTheme}
@@ -70,7 +94,7 @@ export const TopBar: React.FC = () => {
             to="/login"
             className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors shadow-sm"
           >
-            Login
+            {t.login}
           </Link>
         )}
       </div>

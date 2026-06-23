@@ -1,10 +1,33 @@
 import React from 'react';
 import { Moon } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
+
+const translations = {
+  en: {
+    sleepQuality: 'Sleep Quality',
+    noData: 'No data',
+    deepSleep: 'Deep Sleep',
+    lightSleep: 'Light Sleep',
+    rem: 'REM',
+    seeDetails: 'See Details'
+  },
+  id: {
+    sleepQuality: 'Kualitas Tidur',
+    noData: 'Belum ada data',
+    deepSleep: 'Tidur Pulas',
+    lightSleep: 'Tidur Ringan',
+    rem: 'REM',
+    seeDetails: 'Lihat Detail'
+  }
+};
 
 export const SleepCard: React.FC = () => {
+  const { language } = useLanguage();
+  const t = translations[language];
+
   return (
     <div className="bg-card dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700 transition-colors flex flex-col">
-      <h3 className="text-lg font-bold text-textPrimary dark:text-slate-100 mb-4">Kualitas Tidur</h3>
+      <h3 className="text-lg font-bold text-textPrimary dark:text-slate-100 mb-4">{t.sleepQuality}</h3>
 
       <div className="flex-1 flex flex-col items-center justify-center">
         <div className="relative w-36 h-36">
@@ -19,7 +42,7 @@ export const SleepCard: React.FC = () => {
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <Moon className="w-4 h-4 text-primary mb-1" />
             <span className="text-xl font-bold text-textPrimary dark:text-slate-100 font-mono">--</span>
-            <span className="text-xs text-textSecondary dark:text-slate-400">Belum ada data</span>
+            <span className="text-xs text-textSecondary dark:text-slate-400">{t.noData}</span>
           </div>
         </div>
       </div>
@@ -28,28 +51,28 @@ export const SleepCard: React.FC = () => {
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 rounded-full bg-green-600" />
-            <span className="text-sm text-textSecondary dark:text-slate-400">Tidur Pulas</span>
+            <span className="text-sm text-textSecondary dark:text-slate-400">{t.deepSleep}</span>
           </div>
           <span className="text-sm font-mono font-medium text-textPrimary dark:text-slate-200">--</span>
         </div>
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 rounded-full bg-green-400" />
-            <span className="text-sm text-textSecondary dark:text-slate-400">Tidur Ringan</span>
+            <span className="text-sm text-textSecondary dark:text-slate-400">{t.lightSleep}</span>
           </div>
           <span className="text-sm font-mono font-medium text-textPrimary dark:text-slate-200">--</span>
         </div>
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 rounded-full bg-teal-400" />
-            <span className="text-sm text-textSecondary dark:text-slate-400">REM</span>
+            <span className="text-sm text-textSecondary dark:text-slate-400">{t.rem}</span>
           </div>
           <span className="text-sm font-mono font-medium text-textPrimary dark:text-slate-200">--</span>
         </div>
       </div>
 
       <button className="mt-4 w-full py-2.5 bg-green-900 dark:bg-green-800 text-white text-sm font-medium rounded-xl hover:bg-green-800 dark:hover:bg-green-700 transition-colors">
-        Lihat Detail
+        {t.seeDetails}
       </button>
     </div>
   );

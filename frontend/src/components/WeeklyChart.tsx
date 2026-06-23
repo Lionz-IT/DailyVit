@@ -16,6 +16,7 @@ import {
 } from 'chart.js';
 import { Chart } from 'react-chartjs-2';
 import type { HistoryItem } from '../types/health';
+import { useLanguage } from '../context/LanguageContext';
 
 ChartJS.register(
   CategoryScale,
@@ -35,7 +36,24 @@ interface WeeklyChartProps {
   data: HistoryItem[];
 }
 
+const translations = {
+  en: {
+    title: 'Last 7 Days Activity',
+    subtitle: 'Cross-analysis of heart rate & steps',
+    steps: 'Steps',
+    heartRate: 'Heart Rate',
+  },
+  id: {
+    title: 'Aktivitas 7 Hari Terakhir',
+    subtitle: 'Analisis silang detak jantung & langkah',
+    steps: 'Langkah',
+    heartRate: 'Detak Jantung',
+  }
+};
+
 export const WeeklyChart: React.FC<WeeklyChartProps> = ({ data }) => {
+  const { language } = useLanguage();
+  const t = translations[language];
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
 
   useEffect(() => {
@@ -54,7 +72,7 @@ export const WeeklyChart: React.FC<WeeklyChartProps> = ({ data }) => {
 
   const dayLabels = sorted.map(d => {
     const date = new Date(d.date + 'T00:00:00');
-    return date.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric' });
+    return date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'short', day: 'numeric' });
   });
 
   const textColor = isDark ? '#94a3b8' : '#64748b';
@@ -65,7 +83,7 @@ export const WeeklyChart: React.FC<WeeklyChartProps> = ({ data }) => {
     datasets: [
       {
         type: 'bar' as const,
-        label: 'Langkah',
+        label: t.steps,
         data: sorted.map(d => d.total_steps),
         backgroundColor: 'rgba(22, 163, 74, 0.7)',
         borderRadius: 6,
@@ -75,7 +93,7 @@ export const WeeklyChart: React.FC<WeeklyChartProps> = ({ data }) => {
       },
       {
         type: 'line' as const,
-        label: 'Detak Jantung',
+        label: t.heartRate,
         data: sorted.map(d => d.avg_heart_rate === 0 ? null : d.avg_heart_rate),
         borderColor: '#3b82f6',
         backgroundColor: 'rgba(13, 148, 136, 0.05)',
@@ -148,8 +166,8 @@ export const WeeklyChart: React.FC<WeeklyChartProps> = ({ data }) => {
   return (
     <div className="bg-card dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700 transition-colors">
       <div className="mb-4">
-        <h3 className="text-lg font-bold text-textPrimary dark:text-slate-100">Last 7 Days Activity</h3>
-        <p className="text-sm text-textSecondary dark:text-slate-400">Cross-analysis of heart rate & steps</p>
+        <h3 className="text-lg font-bold text-textPrimary dark:text-slate-100">{t.title}</h3>
+        <p className="text-sm text-textSecondary dark:text-slate-400">{t.subtitle}</p>
       </div>
       <div className="h-72 w-full">
         <Chart type="bar" data={chartData} options={options} />

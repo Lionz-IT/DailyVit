@@ -15,6 +15,7 @@ import {
 } from 'chart.js';
 import { Chart } from 'react-chartjs-2';
 import type { HourlyDataPoint } from '../types/health';
+import { useLanguage } from '../context/LanguageContext';
 
 ChartJS.register(
   CategoryScale,
@@ -33,7 +34,24 @@ interface TrendChartProps {
   data: HourlyDataPoint[];
 }
 
+const translations = {
+  en: {
+    title: 'Activity & Heart Rate – 24 Hours',
+    steps: 'Steps',
+    heartRate: 'Heart Rate (bpm)',
+    bpm: 'BPM'
+  },
+  id: {
+    title: 'Aktivitas & Detak Jantung – 24 Jam',
+    steps: 'Langkah',
+    heartRate: 'Detak Jantung (bpm)',
+    bpm: 'BPM'
+  }
+};
+
 export const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
+  const { language } = useLanguage();
+  const t = translations[language];
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
 
   useEffect(() => {
@@ -57,7 +75,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
     datasets: [
       {
         type: 'bar' as const,
-        label: 'Steps',
+        label: t.steps,
         data: data.map(d => d.steps),
         backgroundColor: 'rgba(13, 148, 136, 0.8)',
         borderRadius: 10,
@@ -66,7 +84,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
       },
       {
         type: 'line' as const,
-        label: 'Heart Rate (bpm)',
+        label: t.heartRate,
         data: data.map(d => d.heartRate === 0 ? null : d.heartRate),
         borderColor: '#0D9488',
         backgroundColor: 'rgba(13, 148, 136, 0.1)',
@@ -123,7 +141,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
         type: 'linear' as const,
         display: true,
         position: 'left' as const,
-        title: { display: true, text: 'Steps', color: textColor },
+        title: { display: true, text: t.steps, color: textColor },
         grid: { display: false },
         ticks: { color: textColor }
       },
@@ -131,7 +149,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
         type: 'linear' as const,
         display: true,
         position: 'right' as const,
-        title: { display: true, text: 'BPM', color: textColor },
+        title: { display: true, text: t.bpm, color: textColor },
         grid: { display: false },
         ticks: { color: textColor },
         min: 40,
@@ -142,7 +160,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-full flex flex-col transition-colors duration-200">
-      <h3 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 mb-6 transition-colors">Activity & Heart Rate – 24 Hours</h3>
+      <h3 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 mb-6 transition-colors">{t.title}</h3>
       <div className="flex-1 w-full min-h-[300px] relative">
         <Chart type="bar" data={chartData} options={options} />
       </div>

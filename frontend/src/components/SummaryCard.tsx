@@ -1,6 +1,7 @@
 import React from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { MoreVertical } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export interface SummaryCardProps {
   title: string;
@@ -15,6 +16,19 @@ export interface SummaryCardProps {
   sparklineData?: number[];
 }
 
+const translations = {
+  en: {
+    dailyGoal: 'Daily Goal:',
+    vsYesterday: 'vs yesterday',
+    normal: 'Normal',
+  },
+  id: {
+    dailyGoal: 'Target Harian:',
+    vsYesterday: 'vs kemarin',
+    normal: 'Normal',
+  }
+};
+
 export const SummaryCard: React.FC<SummaryCardProps> = ({
   title,
   value,
@@ -27,6 +41,9 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
   isSparkline,
   sparklineData = [],
 }) => {
+  const { language } = useLanguage();
+  const t = translations[language];
+
   const safePercentage = Math.min(Math.max(percentage * 100, 0), 100);
 
   // Dynamic sparkline points calculation
@@ -56,9 +73,9 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
   return (
     <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between relative overflow-hidden group">
       <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center space-x-3 text-slate-500 dark:text-slate-400">
-          <Icon className="w-6 h-6 text-teal-500" />
-          <span className="text-sm font-semibold uppercase tracking-wider">{title}</span>
+        <div className="flex items-center space-x-3 text-slate-500 dark:text-slate-400 min-w-0">
+          <Icon className="w-6 h-6 text-teal-500 shrink-0" />
+          <span className="text-sm font-semibold uppercase tracking-wider truncate">{title}</span>
         </div>
         <button className="text-slate-400 hover:text-slate-600 p-1 rounded-md">
           <MoreVertical className="w-4 h-4" />
@@ -69,7 +86,7 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
         <div className={`flex-1 ${isLinear ? 'w-full' : ''}`}>
           <div className="flex items-baseline space-x-1">
             <span className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white font-sans">
-              {typeof value === 'number' ? value.toLocaleString('en-US') : value}
+              {typeof value === 'number' ? value.toLocaleString(language === 'id' ? 'id-ID' : 'en-US') : value}
             </span>
             <span className="text-sm font-semibold text-slate-500 ml-1">{unit}</span>
           </div>
@@ -80,7 +97,7 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
                 <div className={`h-full ${color} rounded-full transition-all duration-1000 ease-out`} style={{ width: `${safePercentage}%` }}></div>
               </div>
               <div className="flex justify-between mt-3 text-xs font-bold text-slate-500">
-                <span>Daily Goal: {baseline?.toLocaleString('en-US') || 0}</span>
+                <span>{t.dailyGoal} {baseline?.toLocaleString(language === 'id' ? 'id-ID' : 'en-US') || 0}</span>
                 <span className="text-teal-600 dark:text-teal-400">{Math.round(safePercentage)}%</span>
               </div>
             </div>
@@ -88,7 +105,7 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
 
           {!isLinear && !isSparkline && (
             <div className="mt-3 text-sm font-bold text-teal-500 flex items-center">
-              ↑ 12% vs yesterday
+              ↑ 12% {t.vsYesterday}
             </div>
           )}
         </div>
@@ -115,7 +132,7 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
       
       {isSparkline && (
         <span className="absolute top-4 right-4 bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">
-          Normal
+          {t.normal}
         </span>
       )}
     </div>

@@ -1,12 +1,73 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { type DailySummary } from '../types/health';
 import { Calendar } from 'lucide-react';
+import { SmartInsightPanel } from '../components/SmartInsightPanel';
+
+const translations = {
+  en: {
+    notLoggedIn: 'Please log in to view Smart Insight.',
+    title: 'Smart Insight',
+    subtitle: 'Rule-based automated analysis of daily activity & heart rate data.',
+    today: 'Today',
+    personalTrend: 'Personal Trend\nDeviation',
+    trendDesc: 'Deviation vs 7-day average',
+    sigDown: 'Significant Drop',
+    sigUp: 'Significant Rise',
+    fromBaseline: 'from baseline',
+    todayLabel: 'Today',
+    avg7Days: '7-day average',
+    healthStatusTitle: 'Personal Health\nStatus',
+    healthStatusDesc: 'Heart rate + activity context',
+    low: 'Low',
+    normal: 'Normal',
+    high: 'High',
+    HIGH: 'HIGH',
+    heartRate: 'Heart rate',
+    average: 'average',
+    stepsToday: 'Steps today',
+    dailyTargetTitle: 'Personalized\nDaily Target',
+    dailyTargetDesc: 'Adaptive target 105% x average',
+    achieved: 'achieved',
+    steps: 'steps',
+    minMax: 'Min 3,000 • Max 15,000'
+  },
+  id: {
+    notLoggedIn: 'Silakan masuk untuk melihat Wawasan Cerdas.',
+    title: 'Wawasan Cerdas',
+    subtitle: 'Analisis otomatis berbasis aturan dari data aktivitas & detak jantung.',
+    today: 'Hari ini',
+    personalTrend: 'Deviasi Tren\nPersonal',
+    trendDesc: 'Deviasi vs rata-rata 7 hari',
+    sigDown: 'Turun Signifikan',
+    sigUp: 'Naik Signifikan',
+    fromBaseline: 'dari baseline',
+    todayLabel: 'Hari ini',
+    avg7Days: 'Rata-rata 7 hari',
+    healthStatusTitle: 'Status Kesehatan\nPersonal',
+    healthStatusDesc: 'Konteks detak jantung + aktivitas',
+    low: 'Rendah',
+    normal: 'Normal',
+    high: 'Tinggi',
+    HIGH: 'TINGGI',
+    heartRate: 'Detak jantung',
+    average: 'rata-rata',
+    stepsToday: 'Langkah hari ini',
+    dailyTargetTitle: 'Target Harian\nPersonal',
+    dailyTargetDesc: 'Target adaptif 105% x rata-rata',
+    achieved: 'tercapai',
+    steps: 'langkah',
+    minMax: 'Min 3.000 • Maks 15.000'
+  }
+};
 
 export const SmartInsight: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const { language } = useLanguage();
+  const t = translations[language];
   const [summary, setSummary] = useState<DailySummary | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -36,7 +97,7 @@ export const SmartInsight: React.FC = () => {
   if (!isAuthenticated) {
     return (
       <div className="p-8 text-center text-slate-500">
-        Please log in to view Smart Insight.
+        {t.notLoggedIn}
       </div>
     );
   }
@@ -56,11 +117,11 @@ export const SmartInsight: React.FC = () => {
     <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 w-full min-h-full">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">Smart Insight</h1>
-          <p className="text-sm text-slate-500 mt-1">Rule-based automated analysis of daily activity & heart rate data.</p>
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">{t.title}</h1>
+          <p className="text-sm text-slate-500 mt-1">{t.subtitle}</p>
         </div>
         <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 flex items-center text-sm font-medium text-slate-600 dark:text-slate-300">
-          <Calendar className="w-4 h-4 mr-2 text-teal-500" /> Today • {new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+          <Calendar className="w-4 h-4 mr-2 text-teal-500" /> {t.today} • {new Date().toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
         </div>
       </div>
 
@@ -70,21 +131,21 @@ export const SmartInsight: React.FC = () => {
             <div className="p-2 bg-amber-100 rounded-lg text-amber-600">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
             </div>
-            <h2 className="text-lg font-bold text-slate-800 dark:text-white leading-tight">Personal Trend<br/>Deviation</h2>
+            <h2 className="text-lg font-bold text-slate-800 dark:text-white leading-tight whitespace-pre-line">{t.personalTrend}</h2>
           </div>
-          <p className="text-sm text-slate-500 mb-4">Deviasi vs rata-rata 7 hari</p>
+          <p className="text-sm text-slate-500 mb-4">{t.trendDesc}</p>
           <div className="inline-block bg-amber-500 text-white text-sm font-bold px-3 py-1 rounded-full mb-6 max-w-max">
-            {isTurun ? 'Turun Signifikan' : 'Naik Signifikan'}
+            {isTurun ? t.sigDown : t.sigUp}
           </div>
           <div className="flex items-baseline mb-8">
             <span className="text-5xl font-extrabold text-amber-500">{absDeviasi}%</span>
-            <span className="text-sm text-slate-500 ml-2">dari baseline</span>
+            <span className="text-sm text-slate-500 ml-2">{t.fromBaseline}</span>
           </div>
           <div className="space-y-4 mb-6">
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="font-semibold text-slate-700 dark:text-slate-300">Hari ini</span>
-                <span className="font-bold">{steps.toLocaleString('id-ID')}</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-300">{t.todayLabel}</span>
+                <span className="font-bold">{steps.toLocaleString(language === 'id' ? 'id-ID' : 'en-US')}</span>
               </div>
               <div className="w-full bg-slate-100 rounded-full h-2">
                 <div className="bg-amber-500 h-2 rounded-full" style={{ width: `${Math.min((steps/10000)*100, 100)}%` }}></div>
@@ -92,17 +153,13 @@ export const SmartInsight: React.FC = () => {
             </div>
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="font-semibold text-slate-700 dark:text-slate-300">Rata-rata 7 hari</span>
-                <span className="font-bold">{baselineSteps.toLocaleString('id-ID')}</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-300">{t.avg7Days}</span>
+                <span className="font-bold">{baselineSteps.toLocaleString(language === 'id' ? 'id-ID' : 'en-US')}</span>
               </div>
               <div className="w-full bg-slate-100 rounded-full h-2">
                 <div className="bg-slate-400 h-2 rounded-full" style={{ width: `${Math.min((baselineSteps/10000)*100, 100)}%` }}></div>
               </div>
             </div>
-          </div>
-          <div className="mt-auto bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg">
-            <p className="text-xs font-bold text-amber-600 mb-1">Smart Insight</p>
-            <p className="text-sm text-amber-800">{summary?.smart_insight || 'No insight available.'}</p>
           </div>
         </div>
 
@@ -111,34 +168,30 @@ export const SmartInsight: React.FC = () => {
             <div className="p-2 bg-red-100 rounded-lg text-red-600">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
             </div>
-            <h2 className="text-lg font-bold text-slate-800 dark:text-white leading-tight">Personal Health<br/>Status</h2>
+            <h2 className="text-lg font-bold text-slate-800 dark:text-white leading-tight whitespace-pre-line">{t.healthStatusTitle}</h2>
           </div>
-          <p className="text-sm text-slate-500 mb-4">Konteks detak jantung + aktivitas</p>
+          <p className="text-sm text-slate-500 mb-4">{t.healthStatusDesc}</p>
           <div className="flex space-x-2 mb-6">
-            <span className="px-3 py-1 bg-slate-100 text-slate-400 rounded-full text-sm font-semibold">Rendah</span>
-            <span className="px-3 py-1 bg-slate-100 text-slate-400 rounded-full text-sm font-semibold">Normal</span>
-            <span className="px-3 py-1 bg-red-500 text-white rounded-full text-sm font-bold">Tinggi</span>
+            <span className="px-3 py-1 bg-slate-100 text-slate-400 rounded-full text-sm font-semibold">{t.low}</span>
+            <span className="px-3 py-1 bg-slate-100 text-slate-400 rounded-full text-sm font-semibold">{t.normal}</span>
+            <span className="px-3 py-1 bg-red-500 text-white rounded-full text-sm font-bold">{t.high}</span>
           </div>
-          <div className="text-4xl font-extrabold text-red-500 mb-8">TINGGI</div>
+          <div className="text-4xl font-extrabold text-red-500 mb-8">{t.HIGH}</div>
           <div className="space-y-6 mb-6">
             <div className="flex justify-between items-center border-b border-slate-100 pb-4">
               <div>
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Detak jantung</p>
-                <p className="text-xs text-slate-400">rata-rata {baselineHr} bpm</p>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.heartRate}</p>
+                <p className="text-xs text-slate-400">{t.average} {baselineHr} bpm</p>
               </div>
               <p className="font-bold text-lg">{hr} bpm</p>
             </div>
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Langkah hari ini</p>
-                <p className="text-xs text-slate-400">{Math.round((steps/baselineSteps)*100)}% dari baseline</p>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.stepsToday}</p>
+                <p className="text-xs text-slate-400">{Math.round((steps/baselineSteps)*100)}% {t.fromBaseline}</p>
               </div>
-              <p className="font-bold text-lg">{steps.toLocaleString('id-ID')}</p>
+              <p className="font-bold text-lg">{steps.toLocaleString(language === 'id' ? 'id-ID' : 'en-US')}</p>
             </div>
-          </div>
-          <div className="mt-auto bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
-            <p className="text-xs font-bold text-red-600 mb-1">Smart Insight</p>
-            <p className="text-sm text-red-800">{summary?.smart_insight || 'No insight available.'}</p>
           </div>
         </div>
 
@@ -147,9 +200,9 @@ export const SmartInsight: React.FC = () => {
             <div className="p-2 bg-teal-100 rounded-lg text-teal-600">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" strokeWidth="2" /><circle cx="12" cy="12" r="6" strokeWidth="2" /><circle cx="12" cy="12" r="2" fill="currentColor" /></svg>
             </div>
-            <h2 className="text-lg font-bold text-slate-800 dark:text-white leading-tight">Personalized<br/>Daily Target</h2>
+            <h2 className="text-lg font-bold text-slate-800 dark:text-white leading-tight whitespace-pre-line">{t.dailyTargetTitle}</h2>
           </div>
-          <p className="text-sm text-slate-500 mb-8">Target adaptif 105% x rata-rata</p>
+          <p className="text-sm text-slate-500 mb-8">{t.dailyTargetDesc}</p>
           
           <div className="flex justify-center mb-8 relative">
             <svg className="w-40 h-40 transform -rotate-90">
@@ -158,21 +211,20 @@ export const SmartInsight: React.FC = () => {
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-3xl font-extrabold text-slate-800 dark:text-white">{Math.min(persentaseTarget, 100)}%</span>
-              <span className="text-xs font-medium text-slate-500">tercapai</span>
+              <span className="text-xs font-medium text-slate-500">{t.achieved}</span>
             </div>
           </div>
           
           <div className="text-center mb-8">
-            <p className="text-2xl font-bold text-slate-800 dark:text-white">{steps.toLocaleString('id-ID')} / {(baselineSteps * 1.05).toLocaleString('id-ID')} <span className="text-sm font-normal text-slate-500">langkah</span></p>
-            <p className="text-xs text-slate-400 mt-2">Min 3.000 • Maks 15.000</p>
-          </div>
-
-          <div className="mt-auto bg-teal-50 border-l-4 border-teal-500 p-4 rounded-r-lg">
-            <p className="text-xs font-bold text-teal-600 mb-1">Smart Insight</p>
-            <p className="text-sm text-teal-800">{summary?.smart_insight || 'No insight available.'}</p>
+            <p className="text-2xl font-bold text-slate-800 dark:text-white">{steps.toLocaleString(language === 'id' ? 'id-ID' : 'en-US')} / {(baselineSteps * 1.05).toLocaleString(language === 'id' ? 'id-ID' : 'en-US')} <span className="text-sm font-normal text-slate-500">{t.steps}</span></p>
+            <p className="text-xs text-slate-400 mt-2">{t.minMax}</p>
           </div>
         </div>
       </div>
+
+      {summary?.smart_insight && (
+        <SmartInsightPanel insight={summary.smart_insight} />
+      )}
     </div>
   );
 };

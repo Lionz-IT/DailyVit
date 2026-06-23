@@ -8,9 +8,41 @@ import { TrendChart } from '../components/TrendChart';
 import { SmartInsightPanel } from '../components/SmartInsightPanel';
 import { AnatomyWidget } from '../components/AnatomyWidget';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+
+const translations = {
+  en: {
+    dailyOverview: 'Daily Overview',
+    today: 'Today',
+    lastSyncedJustNow: 'Last synced just now',
+    totalSteps: 'Total Steps',
+    activeCalories: 'Active Calories',
+    avgRestingHR: 'Avg Resting HR',
+    steps: 'steps',
+    kcal: 'kcal',
+    bpm: 'bpm',
+    noChartData: 'No chart data',
+    failedToLoad: 'Failed to load data.',
+  },
+  id: {
+    dailyOverview: 'Ringkasan Harian',
+    today: 'Hari ini',
+    lastSyncedJustNow: 'Baru saja disinkronkan',
+    totalSteps: 'Total Langkah',
+    activeCalories: 'Kalori Aktif',
+    avgRestingHR: 'Rata-rata Detak Jantung Istirahat',
+    steps: 'langkah',
+    kcal: 'kkal',
+    bpm: 'bpm',
+    noChartData: 'Tidak ada data grafik',
+    failedToLoad: 'Gagal memuat data.',
+  }
+};
 
 export const Dashboard: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const { language } = useLanguage();
+  const t = translations[language];
   const location = useLocation();
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
@@ -34,7 +66,11 @@ export const Dashboard: React.FC = () => {
             total_steps: 0,
             total_calories: 0,
             avg_heart_rate: 0,
-            smart_insight: 'Hello! Please log in to start tracking your activity.',
+            smart_insight: {
+              trendDeviation: { en: 'Not enough data to determine trends.', id: 'Data tidak cukup untuk menentukan tren.' },
+              healthStatus: { en: 'Please log in to start tracking.', id: 'Silakan masuk untuk mulai melacak.' },
+              dailyTarget: { en: 'Set your goals after logging in.', id: 'Tetapkan tujuan Anda setelah masuk.' }
+            },
             baseline: { avg_steps: 0, avg_heart_rate: 0, avg_calories: 0 }
           });
           setTrend({ date: date, hourlyData: [] });
@@ -56,7 +92,7 @@ export const Dashboard: React.FC = () => {
         }
       } catch (err) {
         if (isMounted) {
-          const message = err instanceof Error ? err.message : 'Failed to load data.';
+          const message = err instanceof Error ? err.message : t.failedToLoad;
           setError(message);
           setSummary(null);
           setTrend(null);
@@ -73,7 +109,7 @@ export const Dashboard: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [date, isAuthenticated]);
+  }, [date, isAuthenticated, t.failedToLoad]);
 
   const handleDateChange = (newDate: string) => {
     setDate(newDate);
@@ -84,8 +120,8 @@ export const Dashboard: React.FC = () => {
     <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 w-full min-h-full">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">Daily Overview</h1>
-          <p className="text-sm text-slate-500 mt-2 font-medium">Today, {new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} • Last synced just now</p>
+          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">{t.dailyOverview}</h1>
+          <p className="text-sm text-slate-500 mt-2 font-medium">{t.today}, {new Date(date).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { month: 'short', day: 'numeric' })} • {t.lastSyncedJustNow}</p>
         </div>
         <div className="flex items-center space-x-3">
           <div className="relative">
@@ -94,7 +130,7 @@ export const Dashboard: React.FC = () => {
               className="bg-white dark:bg-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-2xl px-5 py-3 flex items-center text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors focus:ring-2 focus:ring-teal-500 focus:outline-none"
             >
               <Calendar className="w-5 h-5 mr-3 text-teal-600" />
-              <span>{new Date(date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
+              <span>{new Date(date).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
             </button>
             {/* Hidden native input */}
             <input
@@ -126,18 +162,18 @@ export const Dashboard: React.FC = () => {
           <div className="lg:col-span-8 flex flex-col space-y-6 lg:space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
               <SummaryCard
-                title="Total Steps"
+                title={t.totalSteps}
                 value={summary?.total_steps ?? 0}
-                unit="steps"
+                unit={t.steps}
                 icon={Footprints}
                 color="bg-teal-500"
                 percentage={(summary?.total_steps ?? 0) / (summary?.baseline?.avg_steps || 10000)}
                 baseline={summary?.baseline?.avg_steps}
               />
               <SummaryCard
-                title="Active Calories"
+                title={t.activeCalories}
                 value={summary?.total_calories ?? 0}
-                unit="kcal"
+                unit={t.kcal}
                 icon={Flame}
                 color="bg-teal-500"
                 percentage={(summary?.total_calories ?? 0) / (summary?.baseline?.avg_calories || 2500)}
@@ -145,9 +181,9 @@ export const Dashboard: React.FC = () => {
                 isLinear={true}
               />
               <SummaryCard
-                title="Avg Resting HR"
+                title={t.avgRestingHR}
                 value={summary?.avg_heart_rate ?? 0}
-                unit="bpm"
+                unit={t.bpm}
                 icon={Heart}
                 color="bg-teal-500"
                 percentage={0}
@@ -165,7 +201,7 @@ export const Dashboard: React.FC = () => {
               <TrendChart data={trend.hourlyData} />
             ) : (
               <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex-1 flex items-center justify-center text-slate-400">
-                No chart data
+                {t.noChartData}
               </div>
             )}
           </div>
