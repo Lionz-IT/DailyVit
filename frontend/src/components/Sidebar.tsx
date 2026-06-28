@@ -141,7 +141,7 @@ export const Sidebar: React.FC = () => {
         />
       )}
 
-      <aside className={`relative fixed lg:static inset-y-0 left-0 z-40 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transform transition-all duration-300 ease-in-out ${
+      <aside className={`fixed lg:static inset-y-0 left-0 z-40 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transform transition-all duration-300 ease-in-out ${
         isCollapsed ? 'w-20' : 'w-72'
       } ${
         mobileOpen ? 'translate-x-0 w-72' : '-translate-x-full lg:translate-x-0'

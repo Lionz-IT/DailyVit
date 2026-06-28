@@ -50,6 +50,7 @@ export const Dashboard: React.FC = () => {
 
   const [date, setDate] = useState<string>(dateFromUrl || new Date().toISOString().split('T')[0]);
   const [summary, setSummary] = useState<DailySummary | null>(null);
+  const [previousSummary, setPreviousSummary] = useState<DailySummary | null>(null);
   const [trend, setTrend] = useState<TrendData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -82,13 +83,16 @@ export const Dashboard: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const [summaryRes, trendRes] = await Promise.all([
+        const yesterday = new Date(new Date(date + 'T00:00:00').getTime() - 86400000).toISOString().split('T')[0];
+        const [summaryRes, trendRes, prevRes] = await Promise.all([
           api.getSummary(date),
           api.getTrend(date),
+          api.getSummary(yesterday).catch(() => null),
         ]);
         if (isMounted) {
           setSummary(summaryRes.data);
           setTrend(trendRes.data);
+          setPreviousSummary(prevRes?.data ?? null);
         }
       } catch (err) {
         if (isMounted) {
@@ -120,7 +124,7 @@ export const Dashboard: React.FC = () => {
     <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 w-full min-h-full">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">{t.dailyOverview}</h1>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">{t.dailyOverview}</h1>
           <p className="text-sm text-slate-500 mt-2 font-medium">{t.today}, {new Date(date).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { month: 'short', day: 'numeric' })} • {t.lastSyncedJustNow}</p>
         </div>
         <div className="flex items-center space-x-3">
@@ -169,6 +173,7 @@ export const Dashboard: React.FC = () => {
                 color="bg-teal-500"
                 percentage={(summary?.total_steps ?? 0) / (summary?.baseline?.avg_steps || 10000)}
                 baseline={summary?.baseline?.avg_steps}
+                previousValue={previousSummary?.total_steps}
               />
               <SummaryCard
                 title={t.activeCalories}
@@ -178,6 +183,7 @@ export const Dashboard: React.FC = () => {
                 color="bg-teal-500"
                 percentage={(summary?.total_calories ?? 0) / (summary?.baseline?.avg_calories || 2500)}
                 baseline={summary?.baseline?.avg_calories || 2500}
+                previousValue={previousSummary?.total_calories}
                 isLinear={true}
               />
               <SummaryCard
@@ -188,6 +194,7 @@ export const Dashboard: React.FC = () => {
                 color="bg-teal-500"
                 percentage={0}
                 baseline={summary?.baseline?.avg_heart_rate}
+                previousValue={previousSummary?.avg_heart_rate}
                 isSparkline={true}
                 sparklineData={trend?.hourlyData.map(d => d.heartRate) || []}
               />

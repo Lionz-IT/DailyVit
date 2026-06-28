@@ -94,6 +94,31 @@ export const History: React.FC = () => {
   const totalCalories = history.length > 0 ? Math.round(history.reduce((acc, curr) => acc + curr.total_calories, 0)) : 0;
   const avgHR = history.length > 0 ? Math.round(history.reduce((acc, curr) => acc + curr.avg_heart_rate, 0) / history.length) : 0;
 
+  const handleExportCSV = () => {
+    if (history.length === 0) return;
+
+    const headers = [t.date, t.steps, t.calories, t.avgHrBpm, t.status];
+    const rows = history.map((item) => {
+      const status = item.total_steps > 8000 ? t.goalReached : item.total_steps > 5000 ? t.active : t.light;
+      return [
+        item.date,
+        item.total_steps,
+        Math.round(item.total_calories),
+        Math.round(item.avg_heart_rate),
+        status,
+      ].join(',');
+    });
+
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `dailyvit-report-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   const getStatusBadge = (steps: number) => {
     if (steps > 8000) return <span className="bg-teal-100 text-teal-600 px-3 py-1 rounded-full text-xs font-bold">{t.goalReached}</span>;
     if (steps > 5000) return <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold">{t.active}</span>;
@@ -104,7 +129,7 @@ export const History: React.FC = () => {
     <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 w-full min-h-full">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">{t.title}</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">{t.title}</h1>
           <p className="text-sm text-slate-500 mt-1">{t.subtitle}</p>
         </div>
         <div className="flex items-center space-x-3">
@@ -189,7 +214,7 @@ export const History: React.FC = () => {
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
             <div className="p-5 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t.dailyBreakdown}</h3>
-              <button className="text-teal-600 hover:text-teal-700 text-sm font-semibold flex items-center space-x-1 transition-colors">
+              <button onClick={handleExportCSV} className="text-teal-600 hover:text-teal-700 text-sm font-semibold flex items-center space-x-1 transition-colors">
                 <span>{t.exportReport}</span>
                 <Download className="w-4 h-4" />
               </button>

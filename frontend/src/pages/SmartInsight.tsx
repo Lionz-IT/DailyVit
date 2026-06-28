@@ -117,7 +117,7 @@ export const SmartInsight: React.FC = () => {
     <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 w-full min-h-full">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">{t.title}</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">{t.title}</h1>
           <p className="text-sm text-slate-500 mt-1">{t.subtitle}</p>
         </div>
         <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 flex items-center text-sm font-medium text-slate-600 dark:text-slate-300">
@@ -126,19 +126,19 @@ export const SmartInsight: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col h-full">
-          <div className="flex items-center space-x-3 mb-6">
+        <div className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col h-full">
+          <div className="flex items-center space-x-3 mb-4 sm:mb-6">
             <div className="p-2 bg-amber-100 rounded-lg text-amber-600">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
             </div>
-            <h2 className="text-lg font-bold text-slate-800 dark:text-white leading-tight whitespace-pre-line">{t.personalTrend}</h2>
+            <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white leading-tight whitespace-pre-line">{t.personalTrend}</h2>
           </div>
           <p className="text-sm text-slate-500 mb-4">{t.trendDesc}</p>
-          <div className="inline-block bg-amber-500 text-white text-sm font-bold px-3 py-1 rounded-full mb-6 max-w-max">
+          <div className="inline-block bg-amber-500 text-white text-sm font-bold px-3 py-1 rounded-full mb-4 sm:mb-6 max-w-max">
             {isTurun ? t.sigDown : t.sigUp}
           </div>
-          <div className="flex items-baseline mb-8">
-            <span className="text-5xl font-extrabold text-amber-500">{absDeviasi}%</span>
+          <div className="flex items-baseline mb-6 sm:mb-8">
+            <span className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-amber-500">{absDeviasi}%</span>
             <span className="text-sm text-slate-500 ml-2">{t.fromBaseline}</span>
           </div>
           <div className="space-y-4 mb-6">
@@ -163,21 +163,21 @@ export const SmartInsight: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col h-full">
-          <div className="flex items-center space-x-3 mb-6">
+        <div className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col h-full">
+          <div className="flex items-center space-x-3 mb-4 sm:mb-6">
             <div className="p-2 bg-red-100 rounded-lg text-red-600">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
             </div>
-            <h2 className="text-lg font-bold text-slate-800 dark:text-white leading-tight whitespace-pre-line">{t.healthStatusTitle}</h2>
+            <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white leading-tight whitespace-pre-line">{t.healthStatusTitle}</h2>
           </div>
           <p className="text-sm text-slate-500 mb-4">{t.healthStatusDesc}</p>
-          <div className="flex space-x-2 mb-6">
-            <span className="px-3 py-1 bg-slate-100 text-slate-400 rounded-full text-sm font-semibold">{t.low}</span>
-            <span className="px-3 py-1 bg-slate-100 text-slate-400 rounded-full text-sm font-semibold">{t.normal}</span>
-            <span className="px-3 py-1 bg-red-500 text-white rounded-full text-sm font-bold">{t.high}</span>
+          <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
+            <span className="px-3 py-1 bg-slate-100 text-slate-400 rounded-full text-xs sm:text-sm font-semibold">{t.low}</span>
+            <span className="px-3 py-1 bg-slate-100 text-slate-400 rounded-full text-xs sm:text-sm font-semibold">{t.normal}</span>
+            <span className="px-3 py-1 bg-red-500 text-white rounded-full text-xs sm:text-sm font-bold">{t.high}</span>
           </div>
-          <div className="text-4xl font-extrabold text-red-500 mb-8">{t.HIGH}</div>
-          <div className="space-y-6 mb-6">
+          <div className="text-3xl sm:text-4xl font-extrabold text-red-500 mb-6 sm:mb-8">{t.HIGH}</div>
+          <div className="space-y-4 sm:space-y-6 mb-6">
             <div className="flex justify-between items-center border-b border-slate-100 pb-4">
               <div>
                 <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t.heartRate}</p>
@@ -195,28 +195,28 @@ export const SmartInsight: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col h-full">
-          <div className="flex items-center space-x-3 mb-6">
+        <div className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col h-full">
+          <div className="flex items-center space-x-3 mb-4 sm:mb-6">
             <div className="p-2 bg-teal-100 rounded-lg text-teal-600">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" strokeWidth="2" /><circle cx="12" cy="12" r="6" strokeWidth="2" /><circle cx="12" cy="12" r="2" fill="currentColor" /></svg>
             </div>
-            <h2 className="text-lg font-bold text-slate-800 dark:text-white leading-tight whitespace-pre-line">{t.dailyTargetTitle}</h2>
+            <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white leading-tight whitespace-pre-line">{t.dailyTargetTitle}</h2>
           </div>
-          <p className="text-sm text-slate-500 mb-8">{t.dailyTargetDesc}</p>
+          <p className="text-sm text-slate-500 mb-6 sm:mb-8">{t.dailyTargetDesc}</p>
           
-          <div className="flex justify-center mb-8 relative">
-            <svg className="w-40 h-40 transform -rotate-90">
+          <div className="flex justify-center mb-6 sm:mb-8 relative">
+            <svg viewBox="0 0 160 160" className="w-28 h-28 sm:w-36 sm:h-36 lg:w-40 lg:h-40 transform -rotate-90">
               <circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="15" fill="transparent" className="text-slate-100 dark:text-slate-700" />
               <circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="15" fill="transparent" strokeDasharray="440" strokeDashoffset={440 - (440 * persentaseTarget) / 100} className="text-teal-600" />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-3xl font-extrabold text-slate-800 dark:text-white">{Math.min(persentaseTarget, 100)}%</span>
+              <span className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-white">{Math.min(persentaseTarget, 100)}%</span>
               <span className="text-xs font-medium text-slate-500">{t.achieved}</span>
             </div>
           </div>
           
-          <div className="text-center mb-8">
-            <p className="text-2xl font-bold text-slate-800 dark:text-white">{steps.toLocaleString(language === 'id' ? 'id-ID' : 'en-US')} / {(baselineSteps * 1.05).toLocaleString(language === 'id' ? 'id-ID' : 'en-US')} <span className="text-sm font-normal text-slate-500">{t.steps}</span></p>
+          <div className="text-center mb-6 sm:mb-8">
+            <p className="text-lg sm:text-2xl font-bold text-slate-800 dark:text-white">{steps.toLocaleString(language === 'id' ? 'id-ID' : 'en-US')} / {(baselineSteps * 1.05).toLocaleString(language === 'id' ? 'id-ID' : 'en-US')} <span className="text-sm font-normal text-slate-500">{t.steps}</span></p>
             <p className="text-xs text-slate-400 mt-2">{t.minMax}</p>
           </div>
         </div>

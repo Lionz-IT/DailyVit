@@ -11,6 +11,7 @@ export interface SummaryCardProps {
   color?: string;
   percentage?: number;
   baseline?: number;
+  previousValue?: number;
   isLinear?: boolean;
   isSparkline?: boolean;
   sparklineData?: number[];
@@ -37,6 +38,7 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
   color = 'bg-teal-500',
   percentage = 0,
   baseline,
+  previousValue,
   isLinear,
   isSparkline,
   sparklineData = [],
@@ -71,7 +73,7 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
   }
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between relative overflow-hidden group">
+    <div className="bg-white dark:bg-slate-800 rounded-3xl p-4 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between relative overflow-hidden group">
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center space-x-3 text-slate-500 dark:text-slate-400 min-w-0">
           <Icon className="w-6 h-6 text-teal-500 shrink-0" />
@@ -85,7 +87,7 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
       <div className="flex justify-between items-end mt-2">
         <div className={`flex-1 ${isLinear ? 'w-full' : ''}`}>
           <div className="flex items-baseline space-x-1">
-            <span className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white font-sans">
+            <span className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white font-sans">
               {typeof value === 'number' ? value.toLocaleString(language === 'id' ? 'id-ID' : 'en-US') : value}
             </span>
             <span className="text-sm font-semibold text-slate-500 ml-1">{unit}</span>
@@ -103,25 +105,34 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
             </div>
           )}
 
-          {!isLinear && !isSparkline && (
-            <div className="mt-3 text-sm font-bold text-teal-500 flex items-center">
-              ↑ 12% {t.vsYesterday}
-            </div>
-          )}
+          {!isLinear && !isSparkline && (() => {
+            const currentNum = typeof value === 'number' ? value : 0;
+            if (previousValue !== undefined && previousValue > 0) {
+              const delta = ((currentNum - previousValue) / previousValue) * 100;
+              const rounded = Math.abs(Math.round(delta));
+              const isUp = delta >= 0;
+              return (
+                <div className={`mt-3 text-sm font-bold flex items-center ${isUp ? 'text-teal-500' : 'text-rose-500'}`}>
+                  {isUp ? '↑' : '↓'} {rounded}% {t.vsYesterday}
+                </div>
+              );
+            }
+            return null;
+          })()}
         </div>
 
         {!isLinear && !isSparkline && (
-          <div className="relative w-24 h-24 flex items-center justify-center shrink-0 ml-4">
-            <svg className="w-full h-full transform -rotate-90">
+          <div className="relative w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 flex items-center justify-center shrink-0 ml-3 sm:ml-4">
+            <svg viewBox="0 0 96 96" className="w-full h-full transform -rotate-90">
               <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-100 dark:text-slate-700" />
               <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray="251.2" strokeDashoffset={251.2 - (251.2 * safePercentage) / 100} className="text-teal-500 drop-shadow-md transition-all duration-1000 ease-out" strokeLinecap="round" />
             </svg>
-            <span className="absolute text-sm font-extrabold text-slate-700 dark:text-slate-200">{Math.round(safePercentage)}%</span>
+            <span className="absolute text-xs sm:text-sm font-extrabold text-slate-700 dark:text-slate-200">{Math.round(safePercentage)}%</span>
           </div>
         )}
 
         {isSparkline && (
-          <div className="w-36 h-20 flex items-end shrink-0 ml-4">
+          <div className="w-24 sm:w-32 lg:w-36 h-16 sm:h-20 flex items-end shrink-0 ml-3 sm:ml-4">
             <svg viewBox="0 0 100 40" className="w-full h-full overflow-visible drop-shadow-md">
               <polyline fill="none" stroke="currentColor" strokeWidth="3.5" className="text-rose-500" strokeLinecap="round" strokeLinejoin="round" points={sparklinePoints} />
               <circle cx={sparklineEndX} cy={sparklineEndY} r="5" fill="currentColor" className="text-rose-500" />

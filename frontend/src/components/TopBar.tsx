@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Search, Sun, Moon, HelpCircle, Globe } from 'lucide-react';
+import { Sun, Moon, Globe } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Link } from 'react-router-dom';
 
 const translations = {
   en: {
-    search: 'Search records...',
     synced: 'Smartwatch Synced',
     login: 'Login',
   },
   id: {
-    search: 'Cari rekam medis...',
     synced: 'Jam Tangan Disinkronkan',
     login: 'Masuk',
   }
@@ -40,21 +38,8 @@ export const TopBar: React.FC = () => {
   const toggleTheme = () => setIsDark(prev => !prev);
 
   return (
-    <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md h-20 px-4 lg:px-10 flex items-center justify-between sticky top-0 z-30 transition-colors shadow-[0_4px_30px_rgb(0,0,0,0.03)]">
-      <div className="flex-1 flex items-center ml-12 lg:ml-0">
-        <div className="relative w-full max-w-md hidden md:block">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-slate-400" />
-          </div>
-          <input
-            type="text"
-            placeholder={t.search}
-            className="block w-full pl-12 pr-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl leading-5 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm transition-colors shadow-sm"
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center space-x-3 lg:space-x-4">
+    <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md h-16 sm:h-20 px-4 lg:px-10 flex items-center justify-end sticky top-0 z-30 transition-colors shadow-[0_4px_30px_rgb(0,0,0,0.03)]">
+      <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4 ml-12 lg:ml-0">
         {isAuthenticated ? (
           <>
             <div className="hidden sm:flex items-center justify-center w-[185px] py-1.5 bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 rounded-full border border-teal-100 dark:border-teal-900/30 whitespace-nowrap">
@@ -75,14 +60,6 @@ export const TopBar: React.FC = () => {
               className="p-2 text-slate-400 hover:text-slate-500 dark:hover:text-slate-300 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500"
             >
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
-            
-            <button className="p-2 text-slate-400 hover:text-slate-500 dark:hover:text-slate-300 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500">
-              <Bell className="w-5 h-5" />
-            </button>
-
-            <button className="p-2 text-slate-400 hover:text-slate-500 dark:hover:text-slate-300 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 hidden sm:block">
-              <HelpCircle className="w-5 h-5" />
             </button>
 
             <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden border-2 border-white dark:border-slate-800 shadow-sm ml-2">
